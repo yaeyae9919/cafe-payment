@@ -69,7 +69,13 @@ project(":api") {
     }
 }
 
-project(":service") {}
+project(":service") {
+    dependencies {
+        implementation(project(":library"))
+    }
+}
+
+project(":library") {}
 
 // jar 패키징이 필요한 모듈만 사용하기 위해 default false
 tasks.jar {
