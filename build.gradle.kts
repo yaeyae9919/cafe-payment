@@ -6,11 +6,10 @@ plugins {
 
     id("org.springframework.boot") version "3.5.0"
     id("io.spring.dependency-management") version "1.1.7"
+    id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
 
     idea
 }
-
-
 
 allprojects {
     group = "com.cafe"
@@ -19,7 +18,6 @@ allprojects {
     repositories {
         mavenCentral()
     }
-
 }
 
 subprojects {
@@ -28,9 +26,9 @@ subprojects {
         plugin("kotlin-spring")
         plugin("org.springframework.boot")
         plugin("io.spring.dependency-management")
+        plugin("org.jlleitschuh.gradle.ktlint")
         plugin("idea")
     }
-
 
     dependencies {
         implementation("org.springframework.boot:spring-boot-starter")
@@ -39,7 +37,6 @@ subprojects {
         testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
-
 
     java {
         toolchain {
@@ -56,7 +53,6 @@ subprojects {
     tasks.withType<Test> {
         useJUnitPlatform()
     }
-
 }
 
 project(":api") {
@@ -82,4 +78,3 @@ tasks.jar {
 tasks.bootJar {
     enabled = false
 }
-
