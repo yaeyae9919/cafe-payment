@@ -3,6 +3,7 @@ package com.cafe.payment.billing.external
 import com.cafe.payment.billing.domain.PayId
 import com.cafe.payment.billing.domain.PayTransactionId
 import com.cafe.payment.order.domain.OrderId
+import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import kotlin.random.Random
@@ -10,6 +11,7 @@ import kotlin.random.Random
 /**
  * mocking 처리된 결제 서버 통신 구현체
  */
+@Component
 class PayClientImpl : PayClient {
     companion object {
         private const val TIMEOUT_THRESHOLD_MS = 3000L // 3초 이상이면 타임아웃으로 간주
@@ -28,6 +30,7 @@ class PayClientImpl : PayClient {
 
         // 타임아웃 체크
         val isTimeout = delayMs >= TIMEOUT_THRESHOLD_MS
+
         if (isTimeout) {
             Thread.sleep(delayMs)
             return Result.failure(
@@ -37,6 +40,7 @@ class PayClientImpl : PayClient {
 
         // 결제 실패 확률 체크
         val isBillingFailed = Random.nextDouble() < PAYMENT_FAILURE_RATE
+
         if (isBillingFailed) {
             return Result.failure(
                 PayFailure.InternalServerError(),
