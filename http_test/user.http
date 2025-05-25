@@ -1,0 +1,9 @@
+POST localhost:8080/api/user/register
+content-type: application/json
+
+{
+  "name": "김유미",
+  "birthDate": "2000-11-10",
+  "phoneNumber": "01012341234",
+  "gender": "FEMALE"
+}
