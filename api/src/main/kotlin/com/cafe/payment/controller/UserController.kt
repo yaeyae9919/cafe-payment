@@ -21,7 +21,7 @@ class UserController(
         @RequestBody form: RegisterUserForm,
     ): UserIdPresentation {
         val userId = userService.register(form.toCommand())
-        return UserIdPresentation(userId.value)
+        return UserIdPresentation(userId.toString())
     }
 
     // 회원 탈퇴
@@ -30,7 +30,7 @@ class UserController(
         val userId = UserContext.getCurrentUserId()
         val withDrawnUserId = userService.withdraw(userId)
 
-        return UserIdPresentation(withDrawnUserId.value)
+        return UserIdPresentation(withDrawnUserId.toString())
     }
 
     // 회원 탈퇴 철회
@@ -39,12 +39,12 @@ class UserController(
         val userId = UserContext.getCurrentUserId()
         val revokedUserId = userService.revokeWithdrawal(userId)
 
-        return UserIdPresentation(revokedUserId.value)
+        return UserIdPresentation(revokedUserId.toString())
     }
 }
 
 data class UserIdPresentation(
-    val userId: Long,
+    val userId: String,
 )
 
 data class RegisterUserForm(
