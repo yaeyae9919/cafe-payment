@@ -1,4 +1,5 @@
-POST localhost:8080/api/user/register
+### 회원가입
+POST {{endpoint}}/api/public/user/register
 content-type: application/json
 
 {
@@ -7,3 +8,11 @@ content-type: application/json
   "phoneNumber": "01012341234",
   "gender": "FEMALE"
 }
+
+### 회원 탈퇴
+DELETE {{endpoint}}/api/user/withdraw
+x-User-Id: {{x-user-id}}
+
+### 회원 탈퇴 철회
+POST {{endpoint}}/api/user/revoke-withdrawal
+x-User-Id: {{x-user-id}}

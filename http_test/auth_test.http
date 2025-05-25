@@ -1,0 +1,14 @@
+### 1. 인증 실패 테스트 - 헤더 없음
+GET {{endpoint}}/api/user/profile
+Content-Type: application/json
+
+### 2. 인증 실패 테스트 - 잘못된 헤더 형식
+GET {{endpoint}}/api/user/profile
+x-user-id: invalid
+Content-Type: application/json
+
+### 3. 인증 실패 테스트 - 잘못된 사용자 ID
+GET {{endpoint}}/api/user/profile
+x-user-id: 999
+Content-Type: application/json
+

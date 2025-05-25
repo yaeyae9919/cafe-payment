@@ -1,6 +1,7 @@
 package com.cafe.payment.user.application
 
 import com.cafe.payment.library.generator.LongIdGenerator
+import com.cafe.payment.user.UserNotFoundException
 import com.cafe.payment.user.domain.User
 import com.cafe.payment.user.domain.UserId
 import com.cafe.payment.user.repository.UserRepository
@@ -25,5 +26,19 @@ class UserServiceImpl(
             )
 
         return userRepository.save(user).id
+    }
+
+    override fun withdraw(userId: UserId): UserId {
+        val user = userRepository.findById(userId) ?: throw UserNotFoundException.notFound()
+        val now = LocalDateTime.now()
+        val withdraw = user.withdraw(now)
+        return userRepository.save(withdraw).id
+    }
+
+    override fun revokeWithdrawal(userId: UserId): UserId {
+        val user = userRepository.findById(userId) ?: throw UserNotFoundException.notFound()
+        val now = LocalDateTime.now()
+        val revokeWithdrawal = user.revokeWithdrawal(now)
+        return userRepository.save(revokeWithdrawal).id
     }
 }

@@ -12,6 +12,9 @@ import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
+/**
+ * 해당 서버는 인증 서버를 통해 인증된 사용자들만 접근 가능하다고 가정합니다.
+ */
 @Component
 @Order(1)
 class AuthenticationFilter(

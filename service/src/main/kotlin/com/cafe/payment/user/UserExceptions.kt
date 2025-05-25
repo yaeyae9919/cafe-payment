@@ -67,3 +67,17 @@ class UserStatusException(
         }
     }
 }
+
+class UserNotFoundException(
+    errorCode: String,
+    message: String,
+) : UserException(HttpStatusCode.NOT_FOUND, errorCode, message, null) {
+    companion object {
+        fun notFound(): UserNotFoundException {
+            return UserNotFoundException(
+                errorCode = "USER_NOT_FOUND_001",
+                message = "존재하지 않는 사용자에요.",
+            )
+        }
+    }
+}

@@ -1,7 +1,9 @@
 package com.cafe.payment.controller
 
+import com.cafe.payment.auth.UserContext
 import com.cafe.payment.user.application.UserService
 import com.cafe.payment.user.domain.Gender
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,12 +15,31 @@ import java.time.LocalDate
 class UserController(
     private val userService: UserService,
 ) {
-    @PostMapping("/user/register")
+    // 회원 가입
+    @PostMapping("/public/user/register")
     fun register(
         @RequestBody form: RegisterUserForm,
     ): UserIdPresentation {
         val userId = userService.register(form.toCommand())
         return UserIdPresentation(userId.value)
+    }
+
+    // 회원 탈퇴
+    @DeleteMapping("/user/withdraw")
+    fun withdraw(): UserIdPresentation {
+        val userId = UserContext.getCurrentUserId()
+        val withDrawnUserId = userService.withdraw(userId)
+
+        return UserIdPresentation(withDrawnUserId.value)
+    }
+
+    // 회원 탈퇴 철회
+    @PostMapping("/user/revoke-withdrawal")
+    fun revokeWithdrawal(): UserIdPresentation {
+        val userId = UserContext.getCurrentUserId()
+        val revokedUserId = userService.revokeWithdrawal(userId)
+
+        return UserIdPresentation(revokedUserId.value)
     }
 }
 

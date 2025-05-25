@@ -67,7 +67,7 @@ subprojects {
 project(":api") {
     dependencies {
         implementation(project(":service"))
-
+        implementation(project(":library"))
         implementation("org.springframework.boot:spring-boot-starter-web")
     }
     tasks.jar {

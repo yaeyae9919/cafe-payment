@@ -7,6 +7,10 @@ import java.time.LocalDate
 interface UserService {
     fun register(command: RegisterCommand): UserId
 
+    fun withdraw(userId: UserId): UserId
+
+    fun revokeWithdrawal(userId: UserId): UserId
+
     data class RegisterCommand(
         val name: String,
         val phoneNumber: String,
