@@ -2,6 +2,7 @@ package com.cafe.payment.order.application
 
 import com.cafe.payment.billing.external.PayClient
 import com.cafe.payment.billing.external.PayFailure
+import com.cafe.payment.library.generator.LongIdGenerator
 import com.cafe.payment.order.domain.Order
 import com.cafe.payment.order.domain.OrderId
 import com.cafe.payment.order.domain.OrderItem
@@ -9,6 +10,7 @@ import com.cafe.payment.order.domain.OrderPayConfirmation
 import com.cafe.payment.order.repository.OrderPayConfirmationRepository
 import com.cafe.payment.order.repository.OrderRepository
 import com.cafe.payment.user.domain.UserId
+import mu.KotlinLogging
 import java.time.LocalDateTime
 
 // TODO 하나의 트랜잭션으로 다루기
@@ -26,8 +28,7 @@ class OrderPayUsecaseImpl(
         // 1. 주문 생성
         val order =
             Order.create(
-                // TODO: ID generator 사용하기
-                id = OrderId(System.currentTimeMillis()),
+                id = OrderId(LongIdGenerator.generate()),
                 buyerId = buyerId,
                 items = orderItems,
                 now = now,
@@ -60,14 +61,15 @@ class OrderPayUsecaseImpl(
 
                     when (exception) {
                         is PayFailure.InternalServerError -> {
-                            // TODO 에러 로그
+                            logger.error(exception) { "결제 실패했어요." }
                             order.payFailed(exceptionOccurredAt)
                         }
                         is PayFailure.TimeoutError -> {
-                            // TODO 워닝 로그
+                            logger.error(exception) { "결제 지연이 생겼어요." }
                             order.payProcessing(exceptionOccurredAt)
                         }
                         else -> {
+                            logger.error(exception) { "알 수 없는 에러가 발생했어요." }
                             throw exception
                         }
                     }
@@ -77,8 +79,12 @@ class OrderPayUsecaseImpl(
         // 4. 주문 정보 저장
         orderRepository.save(processedOrder)
 
-        // TODO 5. 내역 남기기 (pay result > transaction id 있다면 함께 남겨야함)
+        // TODO 5. 내역 남기기 (pay result > transaction id 있다면 함께 남기기)
 
         return processedOrder.id
+    }
+
+    companion object {
+        private val logger = KotlinLogging.logger {}
     }
 }
