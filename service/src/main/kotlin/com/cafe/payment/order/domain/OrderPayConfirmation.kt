@@ -1,5 +1,6 @@
 package com.cafe.payment.order.domain
 
+import com.cafe.payment.billing.domain.PayId
 import com.cafe.payment.order.OrderConfirmationStatusException
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -8,6 +9,8 @@ import java.time.LocalDateTime
 class OrderPayConfirmation private constructor(
     val orderId: OrderId,
     val totalAmount: BigDecimal,
+    // 결제 정보 ID
+    val payId: PayId?,
     // 주문 완료 시점
     val paidAt: LocalDateTime?,
     // 주문 취소 시점
@@ -15,12 +18,14 @@ class OrderPayConfirmation private constructor(
 ) {
     var status: OrderConfirmationStatus = calculateStatus()
 
-    private fun calculateStatus(): OrderConfirmationStatus =
-        when {
-            paidAt != null && canceledAt == null -> OrderConfirmationStatus.PAID
-            paidAt != null && canceledAt != null -> OrderConfirmationStatus.CANCELED
+    private fun calculateStatus(): OrderConfirmationStatus {
+        val paidCondition = paidAt != null && payId != null
+        return when {
+            paidCondition && canceledAt == null -> OrderConfirmationStatus.PAID
+            paidCondition && canceledAt != null -> OrderConfirmationStatus.CANCELED
             else -> OrderConfirmationStatus.INIT
         }
+    }
 
     // 주문 취소
     fun cancel(now: LocalDateTime = LocalDateTime.now()): OrderPayConfirmation {
@@ -32,23 +37,29 @@ class OrderPayConfirmation private constructor(
     }
 
     // 주문 완료
-    fun paid(now: LocalDateTime = LocalDateTime.now()): OrderPayConfirmation {
+    fun paid(
+        payId: PayId,
+        now: LocalDateTime = LocalDateTime.now(),
+    ): OrderPayConfirmation {
         if (status.isPaid) throw OrderConfirmationStatusException.alreadyPaid()
 
         return modify(
+            payId = payId,
             paidAt = now,
         )
     }
 
     private fun modify(
+        payId: PayId? = this.payId,
         paidAt: LocalDateTime? = this.paidAt,
         canceledAt: LocalDateTime? = this.canceledAt,
     ): OrderPayConfirmation {
         return OrderPayConfirmation(
             orderId = this.orderId,
+            totalAmount = this.totalAmount,
+            payId = payId,
             paidAt = paidAt,
             canceledAt = canceledAt,
-            totalAmount = this.totalAmount,
         )
     }
 
@@ -59,6 +70,7 @@ class OrderPayConfirmation private constructor(
         ) = OrderPayConfirmation(
             orderId = orderId,
             totalAmount = totalAmount,
+            payId = null,
             paidAt = null,
             canceledAt = null,
         )
