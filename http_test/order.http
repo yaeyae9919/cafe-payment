@@ -1,0 +1,17 @@
+### 주문
+POST {{endpoint}}/api/order
+content-type: application/json
+x-User-Id: {{x-user-id}}
+
+{
+  "orderItems": [
+    {
+      "productId": 1,
+      "quantity": 2
+    },
+    {
+      "productId": 2,
+      "quantity": 1
+    }
+  ]
+}
