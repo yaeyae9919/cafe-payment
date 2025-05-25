@@ -1,7 +1,7 @@
 package com.cafe.payment.billing.external
 
-import com.cafe.payment.billing.domain.BillingTransactionId
 import com.cafe.payment.billing.domain.PayId
+import com.cafe.payment.billing.domain.PayTransactionId
 import com.cafe.payment.library.HttpStatusCode
 import com.cafe.payment.library.exception.CustomException
 import com.cafe.payment.order.domain.OrderId
@@ -26,7 +26,7 @@ interface PayClient {
 // 결제 성공 결과
 data class PayResult(
     val payId: PayId,
-    val transactionId: BillingTransactionId,
+    val transactionId: PayTransactionId,
     val amount: BigDecimal,
     val transactionAt: LocalDateTime,
 )
@@ -38,7 +38,7 @@ sealed class PayFailure(
     cause: Throwable? = null,
 ) : CustomException(statusCode, errorCode, message, cause) {
     // 결제 서버 실패 (결제 서버 내 실패로 아예 결제/결제 취소되지 않음)
-    class PayServerError(
+    class InternalServerError(
         cause: Throwable? = null,
     ) : PayFailure(
             statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR,

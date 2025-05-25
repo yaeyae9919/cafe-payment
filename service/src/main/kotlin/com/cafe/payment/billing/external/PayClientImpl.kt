@@ -1,7 +1,7 @@
 package com.cafe.payment.billing.external
 
-import com.cafe.payment.billing.domain.BillingTransactionId
 import com.cafe.payment.billing.domain.PayId
+import com.cafe.payment.billing.domain.PayTransactionId
 import com.cafe.payment.order.domain.OrderId
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -39,14 +39,14 @@ class PayClientImpl : PayClient {
         val isBillingFailed = Random.nextDouble() < PAYMENT_FAILURE_RATE
         if (isBillingFailed) {
             return Result.failure(
-                PayFailure.PayServerError(),
+                PayFailure.InternalServerError(),
             )
         }
 
         // 성공 응답
         return Result.success(
             PayResult(
-                payId = generateBillingId(),
+                payId = generatePayId(),
                 transactionId = generateTransactionId(),
                 amount = totalAmount,
                 transactionAt = LocalDateTime.now(),
@@ -73,7 +73,7 @@ class PayClientImpl : PayClient {
         val isBillingFailed = Random.nextDouble() < PAYMENT_FAILURE_RATE
         if (isBillingFailed) {
             return Result.failure(
-                PayFailure.PayServerError(),
+                PayFailure.InternalServerError(),
             )
         }
 
@@ -81,6 +81,7 @@ class PayClientImpl : PayClient {
         return Result.success(
             PayResult(
                 payId = payId,
+                // 결제 취소로 인한 새로운 트랜잭션 ID 응답
                 transactionId = generateTransactionId(),
                 amount = totalAmount,
                 transactionAt = LocalDateTime.now(),
@@ -88,11 +89,11 @@ class PayClientImpl : PayClient {
         )
     }
 
-    private fun generateBillingId(): PayId {
+    private fun generatePayId(): PayId {
         return PayId(System.currentTimeMillis())
     }
 
-    private fun generateTransactionId(): BillingTransactionId {
-        return BillingTransactionId("TXN_${System.currentTimeMillis()}_${Random.nextInt(1000, 9999)}")
+    private fun generateTransactionId(): PayTransactionId {
+        return PayTransactionId("TXN_${System.currentTimeMillis()}_${Random.nextInt(1000, 9999)}")
     }
 }
