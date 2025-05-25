@@ -22,10 +22,24 @@ class User private constructor(
     val updatedAt: LocalDateTime,
     val withdrawnAt: LocalDateTime?,
 ) {
-    val status: UserStatus = if (withdrawnAt == null) UserStatus.ACTIVE else UserStatus.WITHDRAWN
+    val status: UserStatus =
+        if (withdrawnAt == null) {
+            UserStatus.ACTIVE
+        } else {
+            UserStatus.WITHDRAWN
+        }
+
+    val accountRevokableDate: LocalDate? =
+        if (withdrawnAt == null) {
+            null
+        } else {
+            val withdrawnDate = withdrawnAt.toLocalDate()
+            withdrawnDate.plusDays(WITHDRAWAL_REVOKE_DAYS)
+        }
 
     fun isActive(): Boolean = status.isActive()
 
+    // 탈퇴 여부
     fun isWithdrawn(): Boolean = status.isWithdrawn()
 
     // 탈퇴
@@ -42,16 +56,18 @@ class User private constructor(
     fun revokeWithdrawal(now: LocalDateTime = LocalDateTime.now()): User {
         if (isActive() || withdrawnAt == null) throw UserStatusException.notWithdrawn()
 
-        // 탈퇴한 지 WITHDRAWAL_REVOKE_DAYS 이내(포함)일 경우에만 철회 가능 - 날짜 기준 비교
-        val withdrawnDate = withdrawnAt.toLocalDate()
-        val currentDate = now.toLocalDate()
-        val revokableUntilDate = withdrawnDate.plusDays(WITHDRAWAL_REVOKE_DAYS)
-        if (currentDate.isAfter(revokableUntilDate)) throw UserStatusException.withdrawalRevokePeriodExpired()
+        if (cannotRevokeWithdrawal(now)) throw UserStatusException.withdrawalRevokePeriodExpired()
 
         return modify(
             withdrawnAt = null,
             now = now,
         )
+    }
+
+    // 탈퇴한 지 WITHDRAWAL_REVOKE_DAYS 이 지나면 탈퇴 철회할 수 없다.
+    fun cannotRevokeWithdrawal(now: LocalDateTime): Boolean {
+        val currentDate = now.toLocalDate()
+        return currentDate.isAfter(accountRevokableDate)
     }
 
     private fun modify(
