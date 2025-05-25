@@ -11,9 +11,10 @@ value class ProductId(val value: Long) {
 
 /**
  * 상품 데이터는 모두 유효한 값(상품명, 가격 등)을 가지고 있다고 가정한다.
+ * 상품의 가격은 모두 원화라고 가정한다.
  */
 class Product(
     val id: ProductId,
     val name: String,
-    val price: BigDecimal,
+    val amount: BigDecimal,
 )

@@ -24,9 +24,9 @@ class User private constructor(
 ) {
     val status: UserStatus = if (withdrawnAt == null) UserStatus.ACTIVE else UserStatus.WITHDRAWN
 
-    fun isActive(): Boolean = status == UserStatus.ACTIVE
+    fun isActive(): Boolean = status.isActive()
 
-    fun isWithdrawn(): Boolean = status == UserStatus.WITHDRAWN
+    fun isWithdrawn(): Boolean = status.isWithdrawn()
 
     // 탈퇴
     fun withdraw(now: LocalDateTime = LocalDateTime.now()): User {
@@ -113,4 +113,9 @@ enum class UserStatus {
     WITHDRAWN,
 
     // 휴면상태, 제재 등 추가 가능
+    ;
+
+    fun isActive(): Boolean = this == ACTIVE
+
+    fun isWithdrawn(): Boolean = this == WITHDRAWN
 }
