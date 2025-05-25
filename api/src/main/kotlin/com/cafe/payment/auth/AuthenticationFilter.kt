@@ -7,7 +7,6 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -93,4 +92,4 @@ class AuthenticationFilter(
     private fun isWithdrawalRevokePath(path: String): Boolean {
         return REVOKE_WITHDRAWAL_PATH.contains(path)
     }
-} 
+}

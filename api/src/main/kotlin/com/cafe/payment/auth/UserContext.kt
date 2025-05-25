@@ -20,4 +20,4 @@ object UserContext {
     fun clear() {
         userIdThreadLocal.remove()
     }
-} 
+}
