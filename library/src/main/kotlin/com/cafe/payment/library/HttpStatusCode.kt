@@ -13,4 +13,5 @@ enum class HttpStatusCode(val code: Int, val reasonPhrase: String) {
 
     // 5xx
     INTERNAL_SERVER_ERROR(500, "Internal Server Error"),
+    GATEWAY_TIMEOUT(504, "Gateway Timeout"),
 }
