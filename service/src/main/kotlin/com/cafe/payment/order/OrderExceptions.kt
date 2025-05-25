@@ -2,6 +2,7 @@ package com.cafe.payment.order
 
 import com.cafe.payment.library.HttpStatusCode
 import com.cafe.payment.library.exception.CustomException
+import com.cafe.payment.order.domain.OrderStatus
 
 sealed class OrderException(
     statusCode: HttpStatusCode,
@@ -56,6 +57,23 @@ class InvalidOrderItemException(
             return InvalidOrderItemException(
                 errorCode = "ORDER_ITEM_002",
                 message = "주문 상품이 비어있습니다.",
+            )
+        }
+    }
+}
+
+class OrderStatusTransitionException(
+    errorCode: String,
+    message: String,
+) : OrderException(HttpStatusCode.BAD_REQUEST, errorCode, message, null) {
+    companion object {
+        fun invalidOrderStatusTransition(
+            from: OrderStatus,
+            to: OrderStatus,
+        ): OrderStatusTransitionException {
+            return OrderStatusTransitionException(
+                errorCode = "ORDER_STATUS_TRANSITION_001",
+                message = "주문을 $from 상태에서 $to 상태로 변경할 수 없어요.",
             )
         }
     }

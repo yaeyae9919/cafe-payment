@@ -10,20 +10,18 @@ class OrderPayConfirmation private constructor(
     val orderId: OrderId,
     val totalAmount: BigDecimal,
     // 결제 정보 ID
-    val payId: PayId?,
+    val payId: PayId,
     // 주문 완료 시점
-    val paidAt: LocalDateTime?,
+    val paidAt: LocalDateTime,
     // 주문 취소 시점
     val canceledAt: LocalDateTime?,
 ) {
     var status: OrderConfirmationStatus = calculateStatus()
 
     private fun calculateStatus(): OrderConfirmationStatus {
-        val paidCondition = paidAt != null && payId != null
-        return when {
-            paidCondition && canceledAt == null -> OrderConfirmationStatus.PAID
-            paidCondition && canceledAt != null -> OrderConfirmationStatus.CANCELED
-            else -> OrderConfirmationStatus.INIT
+        return when (canceledAt == null) {
+            true -> OrderConfirmationStatus.PAID
+            false -> OrderConfirmationStatus.CANCELED
         }
     }
 
@@ -36,51 +34,33 @@ class OrderPayConfirmation private constructor(
         )
     }
 
-    // 주문 완료
-    fun paid(
-        payId: PayId,
-        now: LocalDateTime = LocalDateTime.now(),
-    ): OrderPayConfirmation {
-        if (status.isPaid) throw OrderConfirmationStatusException.alreadyPaid()
-
-        return modify(
-            payId = payId,
-            paidAt = now,
-        )
-    }
-
-    private fun modify(
-        payId: PayId? = this.payId,
-        paidAt: LocalDateTime? = this.paidAt,
-        canceledAt: LocalDateTime? = this.canceledAt,
-    ): OrderPayConfirmation {
+    private fun modify(canceledAt: LocalDateTime? = this.canceledAt): OrderPayConfirmation {
         return OrderPayConfirmation(
             orderId = this.orderId,
             totalAmount = this.totalAmount,
-            payId = payId,
-            paidAt = paidAt,
+            payId = this.payId,
+            paidAt = this.paidAt,
             canceledAt = canceledAt,
         )
     }
 
     companion object {
-        fun create(
-            orderId: OrderId,
-            totalAmount: BigDecimal,
+        // 주문 완료
+        fun paid(
+            payId: PayId,
+            paidAt: LocalDateTime,
+            order: Order,
         ) = OrderPayConfirmation(
-            orderId = orderId,
-            totalAmount = totalAmount,
-            payId = null,
-            paidAt = null,
+            orderId = order.id,
+            totalAmount = order.totalAmount,
+            payId = payId,
+            paidAt = paidAt,
             canceledAt = null,
         )
     }
 }
 
 enum class OrderConfirmationStatus {
-    // 초기화
-    INIT,
-
     // 주문 완료
     PAID,
 
