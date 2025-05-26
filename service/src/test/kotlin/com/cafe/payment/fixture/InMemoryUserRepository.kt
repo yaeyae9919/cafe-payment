@@ -23,4 +23,8 @@ class InMemoryUserRepository : UserRepository {
     override fun deleteById(userId: UserId) {
         users.remove(userId)
     }
+
+    fun clear() {
+        users.clear()
+    }
 }

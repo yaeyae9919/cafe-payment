@@ -19,4 +19,8 @@ class InMemoryWithdrawnUserRepository : WithdrawnUserRepository {
     override fun findById(userId: UserId): WithdrawnUser? {
         return users[userId]
     }
+
+    fun clear() {
+        users.clear()
+    }
 }
