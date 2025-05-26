@@ -23,4 +23,4 @@ class PayResultConverter : AttributeConverter<PayResult?, String?> {
     override fun convertToEntityAttribute(dbData: String?): PayResult? {
         return dbData?.let { objectMapper.readValue(it, PayResult::class.java) }
     }
-} 
+}
