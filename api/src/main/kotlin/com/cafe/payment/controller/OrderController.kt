@@ -25,7 +25,7 @@ class OrderController(
 ) {
     @Operation(
         summary = "주문 및 결제 준비",
-        description = "상품을 선택하고 주문을 준비합니다. 실제 결제가 이루어지기 전 요청합니다.",
+        description = "상품을 선택하고 주문을 준비합니다. 실제 결제가 이루어지기 전 요청합니다. 상품 id는 1,2,3으로 고정해주세요.",
     )
     @ApiResponses(
         value = [
