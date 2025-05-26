@@ -2,6 +2,7 @@ package com.cafe.payment.user.application
 
 import com.cafe.payment.library.generator.LongIdGenerator
 import com.cafe.payment.user.UserNotFoundException
+import com.cafe.payment.user.UserRegisterException
 import com.cafe.payment.user.domain.User
 import com.cafe.payment.user.domain.UserId
 import com.cafe.payment.user.domain.WithdrawnUser
@@ -34,6 +35,11 @@ class UserServiceImpl(
     @Transactional
     override fun register(command: UserService.RegisterCommand): UserId {
         val now = LocalDateTime.now()
+
+        val isUserExist = userRepository.findByPhoneNumber(command.phoneNumber) != null
+        if (isUserExist) {
+            throw UserRegisterException.alreadyRegistered()
+        }
 
         val user =
             User.create(

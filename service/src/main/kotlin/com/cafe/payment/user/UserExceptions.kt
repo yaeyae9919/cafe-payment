@@ -88,3 +88,17 @@ class UserNotFoundException(
         }
     }
 }
+
+class UserRegisterException(
+    errorCode: String,
+    message: String,
+) : UserException(HttpStatusCode.CONFLICT, errorCode, message, null) {
+    companion object {
+        fun alreadyRegistered(): UserRegisterException {
+            return UserRegisterException(
+                errorCode = "USER_REGISTER_001",
+                message = "이미 같은 번호로 가입했어요.",
+            )
+        }
+    }
+}

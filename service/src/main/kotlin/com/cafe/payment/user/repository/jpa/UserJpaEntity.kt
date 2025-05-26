@@ -19,7 +19,7 @@ class UserJpaEntity(
     val id: Long,
     @Column(nullable = false, length = 100)
     val name: String,
-    @Column(name = "phone_number", nullable = false, length = 30)
+    @Column(name = "phone_number", nullable = false, length = 30, unique = true)
     val phoneNumber: String,
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

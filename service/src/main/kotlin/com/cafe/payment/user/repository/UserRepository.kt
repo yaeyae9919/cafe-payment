@@ -11,6 +11,8 @@ interface UserRepository {
 
     fun findById(userId: UserId): User?
 
+    fun findByPhoneNumber(phoneNumber: String): User?
+
     fun deleteById(userId: UserId)
 }
 
@@ -26,6 +28,10 @@ class UserRepositoryImpl(
 
     override fun findById(userId: UserId): User? {
         return userJpaRepository.findById(userId.value)?.toDomain()
+    }
+
+    override fun findByPhoneNumber(phoneNumber: String): User? {
+        return userJpaRepository.findByPhoneNumber(phoneNumber)?.toDomain()
     }
 
     override fun deleteById(userId: UserId) {
