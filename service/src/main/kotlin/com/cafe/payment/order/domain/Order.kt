@@ -45,7 +45,7 @@ class Order private constructor(
     fun isBuyer(buyerId: UserId): Boolean = this.buyerId == buyerId
 
     fun payComplete(now: LocalDateTime): Order {
-        val newStatus = OrderStatus.PAY_PROCESSING
+        val newStatus = OrderStatus.PAY_COMPLETED
         return modify(
             status = newStatus,
             now = now,
@@ -53,7 +53,7 @@ class Order private constructor(
     }
 
     fun payFailed(now: LocalDateTime): Order {
-        val newStatus = OrderStatus.PAY_PROCESSING
+        val newStatus = OrderStatus.PAY_FAILED
         return modify(
             status = newStatus,
             now = now,
@@ -126,7 +126,7 @@ enum class OrderStatus {
     fun canTransitionTo(newStatus: OrderStatus): Boolean {
         return when (this) {
             PAY_PENDING -> newStatus in setOf(PAY_PROCESSING, PAY_FAILED, PAY_COMPLETED)
-            PAY_PROCESSING -> newStatus in setOf(PAY_COMPLETED, PAY_FAILED)
+            PAY_PROCESSING -> newStatus in setOf(PAY_PROCESSING, PAY_COMPLETED, PAY_FAILED) // 타임아웃 재시도 허용
             PAY_FAILED -> newStatus in setOf(PAY_PROCESSING, PAY_COMPLETED) // 재시도 가능
             PAY_COMPLETED -> false // 최종 상태
         }

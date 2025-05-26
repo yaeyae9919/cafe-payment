@@ -130,7 +130,21 @@ class OrderPayUsecaseImpl(
             )
 
         // 4. 상태에 따라 변경된 주문 정보 저장
-        // TODO 낙관락 도입으로 인한 에러 케이스 핸들링
+        /**
+         * TODO 낙관락 도입으로 인한 에러 케이스 핸들링
+         *
+         * 낙관락 충돌로 인한 order 정합성 깨짐 이슈
+         *  t1 : pending (v1)
+         *  t2 : pending (v2)
+         *
+         *  t1 : 결제 성공
+         *  t2 : 중복 결제
+         *
+         *   ~ 모종의 이유로 t1 지연됨 ~
+         *
+         *  t2 : pending 저장 (v1 -> v2)
+         *  t1 : complete 저장 실패 (낙관락 충돌)
+         */
         orderRepository.save(processedOrder)
 
         // 5. 내역 남기기
