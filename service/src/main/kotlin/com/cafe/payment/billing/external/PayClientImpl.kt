@@ -31,7 +31,7 @@ class PayClientImpl : PayClient {
         payId: PayId,
         totalAmount: BigDecimal,
     ): Result<PayResult> {
-        val delayMs = (1000L..10000L).random()
+        val delayMs = (500L..3000).random()
 
         // 타임아웃 체크
         val isTimeout = delayMs >= TIMEOUT_THRESHOLD_MS
@@ -74,7 +74,7 @@ class PayClientImpl : PayClient {
         payId: PayId,
         totalAmount: BigDecimal,
     ): Result<PayResult> {
-        val delayMs = (1000L..10000L).random()
+        val delayMs = (500L..3000).random()
 
         // 타임아웃 체크
         val isTimeout = delayMs >= TIMEOUT_THRESHOLD_MS

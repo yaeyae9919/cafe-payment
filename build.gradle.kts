@@ -91,6 +91,10 @@ project(":service") {
         // JPA
         implementation("org.springframework.boot:spring-boot-starter-data-jpa")
         runtimeOnly("com.h2database:h2")
+
+        // Jackson for JSON serialization
+        implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     }
 }
 
