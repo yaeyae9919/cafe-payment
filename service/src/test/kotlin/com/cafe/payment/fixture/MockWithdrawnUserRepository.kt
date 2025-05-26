@@ -4,7 +4,7 @@ import com.cafe.payment.user.domain.UserId
 import com.cafe.payment.user.domain.WithdrawnUser
 import com.cafe.payment.user.repository.WithdrawnUserRepository
 
-class InMemoryWithdrawnUserRepository : WithdrawnUserRepository {
+class MockWithdrawnUserRepository : WithdrawnUserRepository {
     private val users = mutableMapOf<UserId, WithdrawnUser>()
 
     override fun save(withdrawnUser: WithdrawnUser): WithdrawnUser {

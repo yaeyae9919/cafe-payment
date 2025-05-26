@@ -1,7 +1,7 @@
 package com.cafe.payment.user.application
 
-import com.cafe.payment.fixture.InMemoryUserRepository
-import com.cafe.payment.fixture.InMemoryWithdrawnUserRepository
+import com.cafe.payment.fixture.MockUserRepository
+import com.cafe.payment.fixture.MockWithdrawnUserRepository
 import com.cafe.payment.fixture.UserFixture
 import com.cafe.payment.user.UserNotFoundException
 import com.cafe.payment.user.UserRegisterException
@@ -13,8 +13,8 @@ import java.time.LocalDate
 
 class UserServiceImplSpec : DescribeSpec({
 
-    val userRepository = InMemoryUserRepository()
-    val withdrawnUserRepository = InMemoryWithdrawnUserRepository()
+    val userRepository = MockUserRepository()
+    val withdrawnUserRepository = MockWithdrawnUserRepository()
     val userService = UserServiceImpl(userRepository, withdrawnUserRepository)
 
     beforeEach {
