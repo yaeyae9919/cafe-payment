@@ -5,10 +5,13 @@ import com.cafe.payment.billing.domain.PayTransactionId
 import com.cafe.payment.billing.external.PayClient
 import com.cafe.payment.billing.external.PayResult
 import com.cafe.payment.order.domain.Order
+import com.cafe.payment.order.domain.OrderId
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
 interface PayService {
+    fun obtainPayId(orderId: OrderId): PayId
+
     fun pay(order: Order): Result<PayResult>
 }
 
@@ -16,6 +19,10 @@ interface PayService {
 class PayServiceImpl(
     private val payClient: PayClient,
 ) : PayService {
+    override fun obtainPayId(orderId: OrderId): PayId {
+        return payClient.obtainPayId(orderId)
+    }
+
     override fun pay(order: Order): Result<PayResult> {
         if (order.totalAmount == 0.toBigDecimal()) {
             return Result.success(
@@ -29,7 +36,7 @@ class PayServiceImpl(
         }
 
         return payClient.pay(
-            orderId = order.id,
+            payId = order.payId,
             totalAmount = order.totalAmount,
         )
     }

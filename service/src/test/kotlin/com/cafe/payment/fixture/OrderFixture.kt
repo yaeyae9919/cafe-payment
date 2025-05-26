@@ -1,5 +1,6 @@
 package com.cafe.payment.fixture
 
+import com.cafe.payment.billing.domain.PayId
 import com.cafe.payment.order.domain.Order
 import com.cafe.payment.order.domain.OrderId
 import com.cafe.payment.order.domain.OrderItem
@@ -15,11 +16,13 @@ object OrderFixture {
 
     fun createOrder(
         id: OrderId = generateOrderId(),
+        payId: PayId = PayFixture.generatePayId(),
         buyerId: UserId = UserFixture.generateUserId(),
         items: List<OrderItem> = listOf(createOrderItem()),
         now: LocalDateTime = LocalDateTime.now(),
     ) = Order.create(
         id = id,
+        payId = payId,
         buyerId = buyerId,
         items = items,
         now = now,

@@ -2,7 +2,7 @@ package com.cafe.payment.order.domain
 
 import com.cafe.payment.fixture.OrderFixture
 import com.cafe.payment.fixture.PayFixture
-import com.cafe.payment.order.OrderConfirmationStatusException
+import com.cafe.payment.order.OrderPayConfirmationStatusException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -47,7 +47,7 @@ class OrderPayConfirmationSpec : FunSpec({
                 order = order,
             ).cancel(now)
 
-        shouldThrow<OrderConfirmationStatusException> {
+        shouldThrow<OrderPayConfirmationStatusException> {
             canceled.cancel(now)
         }
     }

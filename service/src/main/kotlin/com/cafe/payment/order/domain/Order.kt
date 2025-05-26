@@ -1,5 +1,6 @@
 package com.cafe.payment.order.domain
 
+import com.cafe.payment.billing.domain.PayId
 import com.cafe.payment.order.InvalidOrderItemException
 import com.cafe.payment.order.OrderStatusTransitionException
 import com.cafe.payment.product.domain.Product
@@ -20,6 +21,7 @@ value class OrderId(val value: Long) {
  */
 class Order private constructor(
     val id: OrderId,
+    val payId: PayId,
     val status: OrderStatus,
     val buyerId: UserId,
     val items: List<OrderItem>,
@@ -27,6 +29,8 @@ class Order private constructor(
     val updatedAt: LocalDateTime,
 ) {
     val totalAmount = this.items.sumOf { it.totalAmount }
+
+    fun isBuyer(buyerId: UserId): Boolean = this.buyerId == buyerId
 
     fun payComplete(now: LocalDateTime): Order {
         val newStatus = OrderStatus.PAY_PROCESSING
@@ -65,6 +69,7 @@ class Order private constructor(
 
         return Order(
             id = this.id,
+            payId = this.payId,
             status = status,
             buyerId = this.buyerId,
             items = this.items,
@@ -76,6 +81,7 @@ class Order private constructor(
     companion object {
         fun create(
             id: OrderId,
+            payId: PayId,
             buyerId: UserId,
             items: List<OrderItem>,
             now: LocalDateTime = LocalDateTime.now(),
@@ -84,6 +90,7 @@ class Order private constructor(
 
             return Order(
                 id = id,
+                payId = payId,
                 status = OrderStatus.PAY_PENDING,
                 buyerId = buyerId,
                 items = items,

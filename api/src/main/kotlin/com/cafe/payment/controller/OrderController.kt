@@ -2,7 +2,9 @@ package com.cafe.payment.controller
 
 import com.cafe.payment.auth.UserContext
 import com.cafe.payment.order.application.OrderPayUsecase
+import com.cafe.payment.order.domain.OrderId
 import com.cafe.payment.product.domain.ProductId
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,13 +15,13 @@ import org.springframework.web.bind.annotation.RestController
 class OrderController(
     private val orderPayUsecase: OrderPayUsecase,
 ) {
-    @PostMapping("/order")
-    fun order(
+    @PostMapping("/order/prepare")
+    fun prepare(
         @RequestBody form: OrderForm,
-    ): OrderResultPresentation {
+    ): OrderIdPresentation {
         val userId = UserContext.getCurrentUserId()
         val orderResult =
-            orderPayUsecase.orderAndPay(
+            orderPayUsecase.prepareOrder(
                 buyerId = userId,
                 orderItems =
                     form.orderItems.map {
@@ -28,6 +30,19 @@ class OrderController(
                             quantity = it.quantity,
                         )
                     },
+            )
+        return OrderIdPresentation(orderId = orderResult.toString())
+    }
+
+    @PostMapping("/order/{orderId}/pay")
+    fun order(
+        @PathVariable orderId: String,
+    ): OrderResultPresentation {
+        val userId = UserContext.getCurrentUserId()
+        val orderResult =
+            orderPayUsecase.orderPay(
+                requesterId = userId,
+                orderId = OrderId(orderId.toLong()),
             )
 
         return OrderResultPresentation(
@@ -41,6 +56,10 @@ class OrderController(
         )
     }
 }
+
+data class OrderIdPresentation(
+    val orderId: String,
+)
 
 data class OrderResultPresentation(
     val status: OrderPayUsecase.OrderPayStatus,

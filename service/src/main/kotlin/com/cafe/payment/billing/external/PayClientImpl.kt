@@ -18,12 +18,16 @@ class PayClientImpl : PayClient {
         private const val PAYMENT_FAILURE_RATE = 0.2 // 20% 확률로 결제 실패
     }
 
+    override fun obtainPayId(orderId: OrderId): PayId {
+        return generatePayId()
+    }
+
     /**
      * 랜덤 지연 시간을 갖습니다.
      * 특정 확률로 처리 실패합니다.
      */
     override fun pay(
-        orderId: OrderId,
+        payId: PayId,
         totalAmount: BigDecimal,
     ): Result<PayResult> {
         val delayMs = (1000L..10000L).random()
@@ -50,7 +54,7 @@ class PayClientImpl : PayClient {
         // 성공 응답
         return Result.success(
             PayResult(
-                payId = generatePayId(),
+                payId = payId,
                 transactionId = generateTransactionId(),
                 amount = totalAmount,
                 transactionAt = LocalDateTime.now(),

@@ -10,9 +10,11 @@ import java.time.LocalDateTime
 
 // (외부) 결제 서버 호출 인터페이스
 interface PayClient {
+    fun obtainPayId(orderId: OrderId): PayId
+
     // 결제 요청
     fun pay(
-        orderId: OrderId,
+        payId: PayId,
         totalAmount: BigDecimal,
     ): Result<PayResult>
 

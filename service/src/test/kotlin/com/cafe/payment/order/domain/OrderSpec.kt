@@ -1,11 +1,11 @@
 package com.cafe.payment.order.domain
 
 import com.cafe.payment.fixture.OrderFixture
+import com.cafe.payment.fixture.PayFixture
 import com.cafe.payment.fixture.ProductFixture
 import com.cafe.payment.fixture.UserFixture
 import com.cafe.payment.order.InvalidOrderItemException
 import com.cafe.payment.product.domain.ProductId
-import com.cafe.payment.user.domain.UserId
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -17,6 +17,7 @@ class OrderSpec : DescribeSpec({
     describe("주문 생성") {
         context("주문을 생성할 수 있다.") {
             val validOrderId = OrderFixture.generateOrderId()
+            val validPayId = PayFixture.generatePayId()
             val validBuyerId = UserFixture.generateUserId()
             val validOrderItem = OrderFixture.createOrderItem()
             val now = LocalDateTime.now()
@@ -24,6 +25,7 @@ class OrderSpec : DescribeSpec({
             val order =
                 Order.create(
                     id = validOrderId,
+                    payId = validPayId,
                     buyerId = validBuyerId,
                     items = listOf(validOrderItem),
                     now = now,
@@ -37,13 +39,15 @@ class OrderSpec : DescribeSpec({
 
         context("주문 생성은 실패할 수 있다. - validation") {
             it("주문할 상품이 없는 경우 실패") {
-                val validOrderId = OrderId(1L)
-                val validBuyerId = UserId(1L)
+                val validOrderId = OrderFixture.generateOrderId()
+                val validPayId = PayFixture.generatePayId()
+                val validBuyerId = UserFixture.generateUserId()
                 val now = LocalDateTime.now()
 
                 shouldThrow<InvalidOrderItemException> {
                     Order.create(
                         id = validOrderId,
+                        payId = validPayId,
                         buyerId = validBuyerId,
                         items = emptyList(),
                         now = now,
@@ -53,8 +57,9 @@ class OrderSpec : DescribeSpec({
         }
 
         context("주문 내역 금액은 주문 상품 금액의 총 합이다.") {
-            val validOrderId = OrderId(1L)
-            val validBuyerId = UserId(1L)
+            val validOrderId = OrderFixture.generateOrderId()
+            val validPayId = PayFixture.generatePayId()
+            val validBuyerId = UserFixture.generateUserId()
             val now = LocalDateTime.now()
 
             val orderItems =
@@ -65,6 +70,7 @@ class OrderSpec : DescribeSpec({
             val order =
                 Order.create(
                     id = validOrderId,
+                    payId = validPayId,
                     buyerId = validBuyerId,
                     items = orderItems,
                     now = now,

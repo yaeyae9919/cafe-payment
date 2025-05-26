@@ -3,11 +3,15 @@ package com.cafe.payment.order.application
 import com.cafe.payment.billing.application.PayService
 import com.cafe.payment.billing.external.PayFailure
 import com.cafe.payment.library.generator.LongIdGenerator
+import com.cafe.payment.order.OrderNotFoundException
+import com.cafe.payment.order.OrderPayException
 import com.cafe.payment.order.domain.Order
 import com.cafe.payment.order.domain.OrderId
 import com.cafe.payment.order.domain.OrderItem
 import com.cafe.payment.order.domain.OrderPayConfirmation
+import com.cafe.payment.order.domain.OrderPayHistory
 import com.cafe.payment.order.repository.OrderPayConfirmationRepository
+import com.cafe.payment.order.repository.OrderPayHistoryRepository
 import com.cafe.payment.order.repository.OrderRepository
 import com.cafe.payment.product.ProductNotFoundException
 import com.cafe.payment.product.repository.ProductRepository
@@ -21,21 +25,26 @@ class OrderPayUsecaseImpl(
     private val orderRepository: OrderRepository,
     private val productRepository: ProductRepository,
     private val orderPayConfirmationRepository: OrderPayConfirmationRepository,
+    private val orderPayHistoryRepository: OrderPayHistoryRepository,
     private val payService: PayService,
 ) : OrderPayUsecase {
-    override fun orderAndPay(
+    override fun prepareOrder(
         buyerId: UserId,
         orderItems: List<OrderPayUsecase.OrderItem>,
-    ): OrderPayUsecase.OrderPayResult {
+    ): OrderId {
         val now = LocalDateTime.now()
 
         // 0. 상품 정보 확인
         val products = productRepository.findByIds(orderItems.map { it.productId }).associateBy { it.id }
+        val orderId = OrderId(LongIdGenerator.generate())
 
-        // 1. 주문 생성
+        val payId = payService.obtainPayId(orderId)
+
+        // 1. 주문 생성 및 저장
         val order =
             Order.create(
-                id = OrderId(LongIdGenerator.generate()),
+                id = orderId,
+                payId = payId,
                 buyerId = buyerId,
                 items =
                     orderItems.map {
@@ -50,12 +59,25 @@ class OrderPayUsecaseImpl(
                 now = now,
             )
 
+        return orderRepository.save(order).id
+    }
+
+    override fun orderPay(
+        requesterId: UserId,
+        orderId: OrderId,
+    ): OrderPayUsecase.OrderPayResult {
+        val now = LocalDateTime.now()
+
+        // 1. 주문 정보 확인
+        val order = orderRepository.findById(orderId) ?: throw OrderNotFoundException.notFoundOrder(orderId)
+        if (order.isBuyer(requesterId).not()) throw OrderPayException.isNotBuyer(requesterId)
+
         // 2. 결제 시도
-        val payResult = payService.pay(order)
+        val paid = payService.pay(order)
 
         // 3. 결제 시도에 따른 최종 order 설정 및 결과 생성
-        val (processedOrder, orderPayResult) =
-            payResult.fold(
+        val (processedOrder, payResult) =
+            paid.fold(
                 onSuccess = { result ->
                     val confirmedAt = result.transactionAt
 
@@ -67,38 +89,28 @@ class OrderPayUsecaseImpl(
                         )
                     orderPayConfirmationRepository.save(confirmation)
                     val completedOrder = order.payComplete(confirmedAt)
-
-                    val orderResult =
-                        OrderPayUsecase.OrderPayResult(
-                            orderId = completedOrder.id,
-                            status = OrderPayUsecase.OrderPayStatus.SUCCESS,
-                        )
-
-                    completedOrder to orderResult
+                    completedOrder to result
                 },
                 onFailure = { exception ->
-                    val exceptionOccurredAt = LocalDateTime.now()
 
                     val orderByCase =
                         when (exception) {
                             is PayFailure.InternalServerError -> {
                                 logger.error(exception) { "결제 실패했어요." }
-                                val failedOrder = order.payFailed(exceptionOccurredAt)
-
+                                val failedOrder = order.payFailed(now)
                                 failedOrder
                             }
 
                             is PayFailure.TimeoutError -> {
                                 logger.error(exception) { "결제 지연이 생겼어요." }
 
-                            /*
-                             * TODO
-                             *  결제 지연 이벤트를 발행해 결제 상태를 계속 확인
-                             *  결제 완료 되었을 경우, 해당 결제 취소 처리 (사용자는 주문 실패로 간주하기 때문)
-                             *  결제 실패 되었을 경우, 별도 결제 서버 호출 없이 Order 의 상태만 변경할 것.
-                             */
-                                val processingOrder = order.payProcessing(exceptionOccurredAt)
-
+                                /*
+                                 * TODO
+                                 *  결제 지연 이벤트를 발행해 결제 상태를 계속 확인
+                                 *  결제 완료 되었을 경우, 해당 결제 취소 처리 (사용자는 주문 실패로 간주하기 때문)
+                                 *  결제 실패 되었을 경우, 별도 결제 서버 호출 없이 Order 의 상태만 변경할 것.
+                                 */
+                                val processingOrder = order.payProcessing(now)
                                 processingOrder
                             }
 
@@ -107,23 +119,25 @@ class OrderPayUsecaseImpl(
                                 throw exception
                             }
                         }
-
-                    // 결제 지연이더라도 사용자에게 주문은 실패로 보이도록 해요.
-                    val orderResult =
-                        OrderPayUsecase.OrderPayResult(
-                            orderId = orderByCase.id,
-                            status = OrderPayUsecase.OrderPayStatus.FAILED,
-                        )
-                    orderByCase to orderResult
+                    orderByCase to null
                 },
             )
 
-        // 4. 주문 정보 저장
+        // 4. 상태에 따라 변경된 주문 정보 저장
         orderRepository.save(processedOrder)
 
-        // TODO 5. 내역 남기기 (pay result > transaction id 있다면 함께 남기기)
-
-        return orderPayResult
+        // 5. 내역 남기기
+        orderPayHistoryRepository.record(
+            OrderPayHistory(
+                orderId = processedOrder.id,
+                payResult = payResult,
+            ),
+        )
+        return OrderPayUsecase.OrderPayResult(
+            orderId = processedOrder.id,
+            // 결제 지연으로 인한 경우에도, 사용자에게 주문은 "실패"로 보이도록 해요.
+            status = if (payResult != null) OrderPayUsecase.OrderPayStatus.SUCCESS else OrderPayUsecase.OrderPayStatus.FAILED,
+        )
     }
 
     companion object {

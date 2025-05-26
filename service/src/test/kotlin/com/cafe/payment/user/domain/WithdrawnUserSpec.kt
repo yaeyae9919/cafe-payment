@@ -99,4 +99,4 @@ class WithdrawnUserSpec : DescribeSpec({
             }
         }
     }
-}) 
+})

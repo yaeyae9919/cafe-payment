@@ -1,7 +1,7 @@
 package com.cafe.payment.order.domain
 
 import com.cafe.payment.billing.domain.PayId
-import com.cafe.payment.order.OrderConfirmationStatusException
+import com.cafe.payment.order.OrderPayConfirmationStatusException
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -27,8 +27,8 @@ class OrderPayConfirmation private constructor(
 
     // 주문 취소
     fun cancel(now: LocalDateTime = LocalDateTime.now()): OrderPayConfirmation {
-        if (status.isCanceled) throw OrderConfirmationStatusException.alreadyCanceled()
-        if (!(status.isPaid)) throw OrderConfirmationStatusException.notPaid()
+        if (status.isCanceled) throw OrderPayConfirmationStatusException.alreadyCanceled()
+        if (!(status.isPaid)) throw OrderPayConfirmationStatusException.notPaid()
         return modify(
             canceledAt = now,
         )
