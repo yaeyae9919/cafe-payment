@@ -22,6 +22,12 @@ value class OrderId(val value: Long) {
 class Order private constructor(
     val id: OrderId,
     val payId: PayId,
+    /**
+     * 가장 최신의 주문 상태
+     * - 결제 지연 시, 후처리를 위한 상태값이 필요해요.
+     * - 조회 성능 최적화
+     * - 단, Order의 상태가 생김으로서 일관성을 보장하기 위해 락이 필요해졌어요.
+     */
     val status: OrderStatus,
     val buyerId: UserId,
     val items: List<OrderItem>,

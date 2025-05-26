@@ -58,4 +58,14 @@ sealed class PayFailure(
             message = "결제 서버 연결이 지연되었어요.",
             cause = cause,
         )
+
+    // 중복 결제로 인한 실패
+    class AlreadyPaidError(
+        cause: Throwable? = null,
+    ) : PayFailure(
+            statusCode = HttpStatusCode.BAD_REQUEST,
+            errorCode = "BILLING_FAILURE_003",
+            message = "이미 결제되었어요.",
+            cause = cause,
+        )
 }

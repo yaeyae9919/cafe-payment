@@ -16,6 +16,7 @@ class PayClientImpl : PayClient {
     companion object {
         private const val TIMEOUT_THRESHOLD_MS = 3000L // 3초 이상이면 타임아웃으로 간주
         private const val PAYMENT_FAILURE_RATE = 0.2 // 20% 확률로 결제 실패
+        private const val ALREADY_PAID_RATE = 0.2 // 20% 확률로 중복 결제로 인한 실패
     }
 
     override fun obtainPayId(orderId: OrderId): PayId {
@@ -48,6 +49,14 @@ class PayClientImpl : PayClient {
         if (isBillingFailed) {
             return Result.failure(
                 PayFailure.InternalServerError(),
+            )
+        }
+
+        // 중복 결제 실패 확률 체크
+        val isAlreadyPaid = Random.nextDouble() < ALREADY_PAID_RATE
+        if (isAlreadyPaid) {
+            return Result.failure(
+                PayFailure.AlreadyPaidError(),
             )
         }
 
