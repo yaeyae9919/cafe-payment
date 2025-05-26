@@ -1,5 +1,5 @@
-### 주문
-POST {{endpoint}}/api/order
+### 주문 준비
+POST {{endpoint}}/api/order/prepare
 content-type: application/json
 x-User-Id: {{x-user-id}}
 
@@ -15,3 +15,12 @@ x-User-Id: {{x-user-id}}
     }
   ]
 }
+
+### 주문
+@order_id = 5336389640443376971
+POST {{endpoint}}/api/order/{{order_id}}/pay
+x-User-Id: {{x-user-id}}
+
+### 주문 취소
+POST {{endpoint}}/api/order/{{order_id}}/refund
+x-User-Id: {{x-user-id}}

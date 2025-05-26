@@ -18,6 +18,8 @@ class OrderPayConfirmation private constructor(
 ) {
     var status: OrderConfirmationStatus = calculateStatus()
 
+    fun isCanceled(): Boolean = this.status.isCanceled
+
     private fun calculateStatus(): OrderConfirmationStatus {
         return when (canceledAt == null) {
             true -> OrderConfirmationStatus.PAID

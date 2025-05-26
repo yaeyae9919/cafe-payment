@@ -21,6 +21,11 @@ interface OrderPayUsecase {
         orderId: OrderId,
     ): OrderPayResult
 
+    fun orderPayRefund(
+        requesterId: UserId,
+        orderId: OrderId,
+    ): OrderPayResult
+
     data class OrderItem(
         val productId: ProductId,
         val quantity: Int,

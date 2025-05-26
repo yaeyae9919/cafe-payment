@@ -55,6 +55,28 @@ class OrderController(
                 },
         )
     }
+
+    @PostMapping("/order/{orderId}/refund")
+    fun refund(
+        @PathVariable orderId: String,
+    ): OrderResultPresentation {
+        val userId = UserContext.getCurrentUserId()
+        val orderResult =
+            orderPayUsecase.orderPayRefund(
+                requesterId = userId,
+                orderId = OrderId(orderId.toLong()),
+            )
+
+        return OrderResultPresentation(
+            status = orderResult.status,
+            orderId = orderResult.orderId.toString(),
+            message =
+                when (orderResult.status) {
+                    OrderPayUsecase.OrderPayStatus.SUCCESS -> "환불 완료되었어요."
+                    OrderPayUsecase.OrderPayStatus.FAILED -> "환불 실패했어요."
+                },
+        )
+    }
 }
 
 data class OrderIdPresentation(

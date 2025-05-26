@@ -158,6 +158,94 @@ class OrderPayUsecaseImpl(
         )
     }
 
+    override fun orderPayRefund(
+        requesterId: UserId,
+        orderId: OrderId,
+    ): OrderPayUsecase.OrderPayResult {
+        val now = LocalDateTime.now()
+
+        // 1. 주문 및 주문 확정 정보 확인
+        val order = orderRepository.findById(orderId) ?: throw OrderNotFoundException.notFoundOrder(orderId)
+        if (order.isBuyer(requesterId).not()) throw OrderPayException.isNotBuyer(requesterId)
+
+        val orderConfirmation =
+            orderPayConfirmationRepository.findByOrderId(orderId) ?: throw OrderNotFoundException.notFoundConfirmation(
+                orderId,
+            )
+
+        // 2. 주문 및 주문 확정 상태 확인
+
+        // 완료된 주문만 취소할 수 있어요.
+        if (order.isNotPayComplete()) {
+            throw OrderPayException.cancleOnlyWhenOrderCompleted()
+        }
+
+        // 결제된 주문만 취소할 수 있어요.
+        if (orderConfirmation.isCanceled()) {
+            throw OrderPayException.cancleOnlyWhenOrderPaid()
+        }
+
+        // 3. 환불 시도
+        val refunded = payService.refund(order)
+
+        // 4. 환불 시도에 따른 최종 order 설정 및 결과 생성
+        val (processedOrder, refundResult) =
+            refunded.fold(
+                onSuccess = { result ->
+                    val refundedAt = result.transactionAt
+
+                    val canceledConfirmation = orderConfirmation.cancel(refundedAt)
+                    orderPayConfirmationRepository.save(canceledConfirmation)
+
+                    val canceledOrder = order.cancelCompleted(refundedAt)
+                    canceledOrder to result
+                },
+                onFailure = { exception ->
+                    val orderByCase =
+                        when (exception) {
+                            is PayFailure.InternalServerError -> {
+                                logger.error(exception) { "환불 실패했어요." }
+                                val failedOrder = order.cancelFailed(now)
+                                failedOrder
+                            }
+
+                            is PayFailure.TimeoutError -> {
+                                logger.error(exception) { "환불 지연이 생겼어요." }
+
+                                /*
+                                 * TODO
+                                 *  환불 지연 이벤트를 발행해 환불 상태를 계속 확인
+                                 *  환불 완료 되었을 경우, 해당 환불 취소 처리 (사용자는 환불 실패로 간주하기 때문)
+                                 *  환불 실패 되었을 경우, 별도 결제 서버 호출 없이 Order 의 상태만 변경할 것.
+                                 */
+                                val processingOrder = order.cancelProcessing(now)
+                                processingOrder
+                            }
+
+                            else -> {
+                                logger.error(exception) { "알 수 없는 에러가 발생했어요. 확인이 필요해요." }
+                                throw exception
+                            }
+                        }
+                    orderByCase to null
+                },
+            )
+
+        // 5. 상태에 따라 변경된 주문 정보 저장
+        orderRepository.save(processedOrder)
+
+        // 6. 내역 남기기
+        orderPayHistoryRepository.record(
+            OrderPayHistory.create(processedOrder, refundResult),
+        )
+
+        return OrderPayUsecase.OrderPayResult(
+            orderId = processedOrder.id,
+            // 환불 지연으로 인한 경우에도, 사용자에게 취소는 "실패"로 보이도록 해요.
+            status = if (refundResult != null) OrderPayUsecase.OrderPayStatus.SUCCESS else OrderPayUsecase.OrderPayStatus.FAILED,
+        )
+    }
+
     companion object {
         private val logger = KotlinLogging.logger {}
     }

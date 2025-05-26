@@ -13,6 +13,8 @@ interface PayService {
     fun obtainPayId(orderId: OrderId): PayId
 
     fun pay(order: Order): Result<PayResult>
+
+    fun refund(order: Order): Result<PayResult>
 }
 
 @Service
@@ -36,6 +38,24 @@ class PayServiceImpl(
         }
 
         return payClient.pay(
+            payId = order.payId,
+            totalAmount = order.totalAmount,
+        )
+    }
+
+    override fun refund(order: Order): Result<PayResult> {
+        if (order.totalAmount == 0.toBigDecimal()) {
+            return Result.success(
+                PayResult(
+                    payId = PayId.ZERO_PAY_ID,
+                    transactionId = PayTransactionId.ZERO_PAY_TRANSACTION_ID,
+                    amount = order.totalAmount,
+                    transactionAt = LocalDateTime.now(),
+                ),
+            )
+        }
+
+        return payClient.refund(
             payId = order.payId,
             totalAmount = order.totalAmount,
         )

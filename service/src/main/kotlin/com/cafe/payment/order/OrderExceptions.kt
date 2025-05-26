@@ -89,7 +89,14 @@ class OrderNotFoundException(
         fun notFoundOrder(orderId: OrderId): OrderNotFoundException {
             return OrderNotFoundException(
                 errorCode = "ORDER_NOT_FOUND_001",
-                message = "존재하지 않는 주문 정보입니다. ($orderId)",
+                message = "존재하지 않는 주문 정보에요. ($orderId)",
+            )
+        }
+
+        fun notFoundConfirmation(orderId: OrderId): OrderNotFoundException {
+            return OrderNotFoundException(
+                errorCode = "ORDER_NOT_FOUND_002",
+                message = "주문 결제 내역을 찾을 수 없어요. ($orderId)",
             )
         }
     }
@@ -105,7 +112,23 @@ class OrderPayException(
             return OrderPayException(
                 statusCode = HttpStatusCode.FORBIDDEN,
                 errorCode = "ORDER_PAY_001",
-                message = "주문한 사람만 결제할 수 있어요. ($requesterId)",
+                message = "내가 주문한게 아니에요. ($requesterId)",
+            )
+        }
+
+        fun cancleOnlyWhenOrderCompleted(): OrderPayException {
+            return OrderPayException(
+                statusCode = HttpStatusCode.BAD_REQUEST,
+                errorCode = "ORDER_PAY_002",
+                message = "완료된 주문만 취소할 수 있어요.",
+            )
+        }
+
+        fun cancleOnlyWhenOrderPaid(): OrderPayException {
+            return OrderPayException(
+                statusCode = HttpStatusCode.BAD_REQUEST,
+                errorCode = "ORDER_PAY_003",
+                message = "결제 완료된 주문만 취소할 수 있어요.",
             )
         }
     }

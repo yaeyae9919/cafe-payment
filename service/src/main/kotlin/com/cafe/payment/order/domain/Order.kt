@@ -44,6 +44,8 @@ class Order private constructor(
 
     fun isBuyer(buyerId: UserId): Boolean = this.buyerId == buyerId
 
+    fun isNotPayComplete(): Boolean = !this.status.isPayComplete()
+
     fun payComplete(now: LocalDateTime): Order {
         val newStatus = OrderStatus.PAY_COMPLETED
         return modify(
@@ -62,6 +64,30 @@ class Order private constructor(
 
     fun payProcessing(now: LocalDateTime): Order {
         val newStatus = OrderStatus.PAY_PROCESSING
+        return modify(
+            status = newStatus,
+            now = now,
+        )
+    }
+
+    fun cancelProcessing(now: LocalDateTime): Order {
+        val newStatus = OrderStatus.CANCEL_PROCESSING
+        return modify(
+            status = newStatus,
+            now = now,
+        )
+    }
+
+    fun cancelFailed(now: LocalDateTime): Order {
+        val newStatus = OrderStatus.CANCEL_FAILED
+        return modify(
+            status = newStatus,
+            now = now,
+        )
+    }
+
+    fun cancelCompleted(now: LocalDateTime): Order {
+        val newStatus = OrderStatus.CANCEL_COMPLETED
         return modify(
             status = newStatus,
             now = now,
@@ -104,7 +130,7 @@ class Order private constructor(
             return Order(
                 id = id,
                 payId = payId,
-                status = OrderStatus.PAY_PENDING,
+                status = OrderStatus.PENDING,
                 buyerId = buyerId,
                 items = items,
                 createdAt = now,
@@ -116,19 +142,30 @@ class Order private constructor(
 }
 
 enum class OrderStatus {
+    PENDING,
+
     // 결제 관련
-    PAY_PENDING,
     PAY_PROCESSING,
     PAY_FAILED,
     PAY_COMPLETED,
+
+    // 취소 관련
+    CANCEL_PROCESSING,
+    CANCEL_FAILED,
+    CANCEL_COMPLETED,
     ;
+
+    fun isPayComplete() = this == PAY_COMPLETED
 
     fun canTransitionTo(newStatus: OrderStatus): Boolean {
         return when (this) {
-            PAY_PENDING -> newStatus in setOf(PAY_PROCESSING, PAY_FAILED, PAY_COMPLETED)
+            PENDING -> newStatus in setOf(PAY_PROCESSING, PAY_FAILED, PAY_COMPLETED)
             PAY_PROCESSING -> newStatus in setOf(PAY_PROCESSING, PAY_COMPLETED, PAY_FAILED) // 타임아웃 재시도 허용
             PAY_FAILED -> newStatus in setOf(PAY_PROCESSING, PAY_COMPLETED) // 재시도 가능
-            PAY_COMPLETED -> false // 최종 상태
+            PAY_COMPLETED -> newStatus in setOf(CANCEL_PROCESSING, CANCEL_FAILED, CANCEL_COMPLETED)
+            CANCEL_PROCESSING -> newStatus in setOf(CANCEL_PROCESSING, CANCEL_COMPLETED, CANCEL_FAILED) // 타임아웃 재시도 허용
+            CANCEL_FAILED -> newStatus in setOf(CANCEL_PROCESSING, CANCEL_COMPLETED) // 재시도 가능
+            CANCEL_COMPLETED -> false // 최종 상태
         }
     }
 }
