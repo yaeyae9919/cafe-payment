@@ -2,6 +2,8 @@ package com.cafe.payment.user.repository
 
 import com.cafe.payment.user.domain.User
 import com.cafe.payment.user.domain.UserId
+import com.cafe.payment.user.repository.jpa.UserJpaEntity
+import com.cafe.payment.user.repository.jpa.UserJpaRepository
 import org.springframework.stereotype.Repository
 
 interface UserRepository {
@@ -13,19 +15,20 @@ interface UserRepository {
 }
 
 @Repository
-class InMemoryUserRepository : UserRepository {
-    private val users = mutableMapOf<UserId, User>()
-
+class UserRepositoryImpl(
+    private val userJpaRepository: UserJpaRepository,
+) : UserRepository {
     override fun save(user: User): User {
-        users[user.id] = user
-        return user
+        val entity = UserJpaEntity.fromDomain(user)
+        val savedEntity = userJpaRepository.save(entity)
+        return savedEntity.toDomain()
     }
 
     override fun findById(userId: UserId): User? {
-        return users[userId]
+        return userJpaRepository.findById(userId.value)?.toDomain()
     }
 
     override fun deleteById(userId: UserId) {
-        users.remove(userId)
+        userJpaRepository.deleteById(userId.value)
     }
 }

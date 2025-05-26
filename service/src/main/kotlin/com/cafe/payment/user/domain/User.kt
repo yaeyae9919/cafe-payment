@@ -11,7 +11,7 @@ value class UserId(val value: Long) {
     }
 }
 
-class User private constructor(
+class User internal constructor(
     val id: UserId,
     val name: String,
     val phoneNumber: String,
@@ -49,19 +49,4 @@ class User private constructor(
 enum class Gender {
     MALE,
     FEMALE,
-}
-
-enum class UserStatus {
-    // 정상
-    ACTIVE,
-
-    // 탈퇴
-    WITHDRAWN,
-
-    // 휴면상태, 제재 등 추가 가능
-    ;
-
-    fun isActive(): Boolean = this == ACTIVE
-
-    fun isWithdrawn(): Boolean = this == WITHDRAWN
 }

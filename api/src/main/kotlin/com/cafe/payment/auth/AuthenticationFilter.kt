@@ -24,6 +24,7 @@ class AuthenticationFilter(
         private val PUBLIC_PATHS =
             setOf(
                 "/api/public/",
+                "/h2-console",
             )
         private val REVOKE_WITHDRAWAL_PATH =
             setOf(

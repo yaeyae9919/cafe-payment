@@ -8,6 +8,7 @@ import com.cafe.payment.user.domain.WithdrawnUser
 import com.cafe.payment.user.repository.UserRepository
 import com.cafe.payment.user.repository.WithdrawnUserRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @Service
@@ -15,11 +16,13 @@ class UserServiceImpl(
     private val userRepository: UserRepository,
     private val withDrawnUserRepository: WithdrawnUserRepository,
 ) : UserService {
+    @Transactional(readOnly = true)
     override fun isActive(userId: UserId): Boolean {
         val user = userRepository.findById(userId)
         return user != null
     }
 
+    @Transactional(readOnly = true)
     override fun isRevokableWithdrawn(
         userId: UserId,
         now: LocalDateTime,
@@ -28,6 +31,7 @@ class UserServiceImpl(
         return !withdrawnUser.cannotRevokable(now)
     }
 
+    @Transactional
     override fun register(command: UserService.RegisterCommand): UserId {
         val now = LocalDateTime.now()
 
@@ -44,6 +48,7 @@ class UserServiceImpl(
         return userRepository.save(user).id
     }
 
+    @Transactional
     override fun withdraw(userId: UserId): UserId {
         val now = LocalDateTime.now()
 
@@ -57,6 +62,7 @@ class UserServiceImpl(
     }
 
     // 탈퇴 철회 시 즉시 서비스 사용이 가능해야햔다.
+    @Transactional
     override fun revokeWithdrawal(userId: UserId): UserId {
         val now = LocalDateTime.now()
         val withdrawnUser = withDrawnUserRepository.findById(userId) ?: throw UserNotFoundException.notFoundWithdrawnUser()

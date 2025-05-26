@@ -2,6 +2,8 @@ package com.cafe.payment.user.repository
 
 import com.cafe.payment.user.domain.UserId
 import com.cafe.payment.user.domain.WithdrawnUser
+import com.cafe.payment.user.repository.jpa.WithdrawnUserJpaEntity
+import com.cafe.payment.user.repository.jpa.WithdrawnUserJpaRepository
 import org.springframework.stereotype.Repository
 
 interface WithdrawnUserRepository {
@@ -13,19 +15,20 @@ interface WithdrawnUserRepository {
 }
 
 @Repository
-class InMemoryWithdrawnUserRepository : WithdrawnUserRepository {
-    private val users = mutableMapOf<UserId, WithdrawnUser>()
-
+class WithdrawnUserRepositoryImpl(
+    private val withdrawnUserJpaRepository: WithdrawnUserJpaRepository,
+) : WithdrawnUserRepository {
     override fun save(withdrawnUser: WithdrawnUser): WithdrawnUser {
-        users[withdrawnUser.userId] = withdrawnUser
-        return withdrawnUser
-    }
-
-    override fun deleteById(userId: UserId) {
-        users.remove(userId)
+        val entity = WithdrawnUserJpaEntity.fromDomain(withdrawnUser)
+        val savedEntity = withdrawnUserJpaRepository.save(entity)
+        return savedEntity.toDomain()
     }
 
     override fun findById(userId: UserId): WithdrawnUser? {
-        return users[userId]
+        return withdrawnUserJpaRepository.findByUserId(userId.value)?.toDomain()
+    }
+
+    override fun deleteById(userId: UserId) {
+        withdrawnUserJpaRepository.deleteByUserId(userId.value)
     }
 }
