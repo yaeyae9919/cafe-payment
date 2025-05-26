@@ -5,6 +5,7 @@ import com.cafe.payment.order.domain.Order
 import com.cafe.payment.order.domain.OrderId
 import com.cafe.payment.order.domain.OrderItem
 import com.cafe.payment.order.domain.OrderItemId
+import com.cafe.payment.order.domain.OrderPayConfirmation
 import com.cafe.payment.product.domain.Product
 import com.cafe.payment.user.domain.UserId
 import java.time.LocalDateTime
@@ -48,4 +49,12 @@ object OrderFixture {
             amount = product.amount,
         )
     }
+
+    fun createConfirmation(
+        order: Order = createOrder(),
+        paidAt: LocalDateTime = LocalDateTime.now(),
+    ) = OrderPayConfirmation.paid(
+        order = order,
+        paidAt = paidAt,
+    )
 }

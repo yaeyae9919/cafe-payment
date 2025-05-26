@@ -93,9 +93,8 @@ class OrderPayUsecaseImpl(
 
                     val confirmation =
                         OrderPayConfirmation.paid(
-                            payId = result.payId,
-                            paidAt = confirmedAt,
                             order = order,
+                            paidAt = confirmedAt,
                         )
                     orderPayConfirmationRepository.save(confirmation)
                     val completedOrder = order.payComplete(confirmedAt)
@@ -174,21 +173,19 @@ class OrderPayUsecaseImpl(
     ): OrderPayUsecase.OrderPayResult {
         val now = LocalDateTime.now()
 
-        // 1. 주문 및 주문 확정 정보 확인
+        // 1. 주문 확인
         val order = orderRepository.findById(orderId) ?: throw OrderNotFoundException.notFoundOrder(orderId)
         if (order.isBuyer(requesterId).not()) throw OrderPayException.isNotBuyer(requesterId)
 
+        if (order.isNotPayComplete()) {
+            throw OrderPayException.cancleOnlyWhenOrderCompleted()
+        }
+
+        // 2. 주문 결제 상태 확인
         val orderConfirmation =
             orderPayConfirmationRepository.findByOrderId(orderId) ?: throw OrderNotFoundException.notFoundConfirmation(
                 orderId,
             )
-
-        // 2. 주문 및 주문 확정 상태 확인
-
-        // 완료된 주문만 취소할 수 있어요.
-        if (order.isNotPayComplete()) {
-            throw OrderPayException.cancleOnlyWhenOrderCompleted()
-        }
 
         // 결제된 주문만 취소할 수 있어요.
         if (orderConfirmation.isCanceled()) {

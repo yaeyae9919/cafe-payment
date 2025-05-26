@@ -49,13 +49,12 @@ class OrderPayConfirmation internal constructor(
     companion object {
         // 주문 완료
         fun paid(
-            payId: PayId,
             paidAt: LocalDateTime,
             order: Order,
         ) = OrderPayConfirmation(
             orderId = order.id,
+            payId = order.payId,
             totalAmount = order.totalAmount,
-            payId = payId,
             paidAt = paidAt,
             canceledAt = null,
         )

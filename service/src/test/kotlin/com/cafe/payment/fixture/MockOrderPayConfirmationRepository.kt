@@ -4,7 +4,7 @@ import com.cafe.payment.order.domain.OrderId
 import com.cafe.payment.order.domain.OrderPayConfirmation
 import com.cafe.payment.order.repository.OrderPayConfirmationRepository
 
-class InMemoryOrderPayConfirmationRepository : OrderPayConfirmationRepository {
+class MockOrderPayConfirmationRepository : OrderPayConfirmationRepository {
     private val confirmations = mutableMapOf<OrderId, OrderPayConfirmation>()
 
     override fun save(orderPayConfirmation: OrderPayConfirmation): OrderPayConfirmation {
@@ -14,5 +14,9 @@ class InMemoryOrderPayConfirmationRepository : OrderPayConfirmationRepository {
 
     override fun findByOrderId(orderId: OrderId): OrderPayConfirmation? {
         return confirmations[orderId]
+    }
+
+    fun clear() {
+        confirmations.clear()
     }
 }

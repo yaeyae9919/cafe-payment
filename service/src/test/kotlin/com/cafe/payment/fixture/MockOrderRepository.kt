@@ -4,7 +4,7 @@ import com.cafe.payment.order.domain.Order
 import com.cafe.payment.order.domain.OrderId
 import com.cafe.payment.order.repository.OrderRepository
 
-class InMemoryOrderRepository : OrderRepository {
+class MockOrderRepository : OrderRepository {
     private val orders = mutableMapOf<OrderId, Order>()
 
     override fun findById(orderId: OrderId): Order? {
@@ -14,5 +14,9 @@ class InMemoryOrderRepository : OrderRepository {
     override fun save(order: Order): Order {
         orders[order.id] = order
         return order
+    }
+
+    fun clear() {
+        orders.clear()
     }
 }

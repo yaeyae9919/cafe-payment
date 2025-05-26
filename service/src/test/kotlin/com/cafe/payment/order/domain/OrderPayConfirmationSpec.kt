@@ -1,7 +1,6 @@
 package com.cafe.payment.order.domain
 
 import com.cafe.payment.fixture.OrderFixture
-import com.cafe.payment.fixture.PayFixture
 import com.cafe.payment.order.OrderPayConfirmationStatusException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -17,7 +16,6 @@ class OrderPayConfirmationSpec : FunSpec({
 
         val paid =
             OrderPayConfirmation.paid(
-                payId = PayFixture.generatePayId(),
                 paidAt = now,
                 order = order,
             )
@@ -29,7 +27,6 @@ class OrderPayConfirmationSpec : FunSpec({
         val now = LocalDateTime.now()
         val paid =
             OrderPayConfirmation.paid(
-                payId = PayFixture.generatePayId(),
                 paidAt = now,
                 order = order,
             )
@@ -42,7 +39,6 @@ class OrderPayConfirmationSpec : FunSpec({
         val now = LocalDateTime.now()
         val canceled =
             OrderPayConfirmation.paid(
-                payId = PayFixture.generatePayId(),
                 paidAt = now,
                 order = order,
             ).cancel(now)
