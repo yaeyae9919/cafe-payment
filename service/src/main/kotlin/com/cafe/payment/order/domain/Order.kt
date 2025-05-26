@@ -1,10 +1,7 @@
 package com.cafe.payment.order.domain
 
 import com.cafe.payment.billing.domain.PayId
-import com.cafe.payment.order.InvalidOrderItemException
 import com.cafe.payment.order.OrderStatusTransitionException
-import com.cafe.payment.product.domain.Product
-import com.cafe.payment.product.domain.ProductId
 import com.cafe.payment.user.domain.UserId
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -30,7 +27,8 @@ class Order private constructor(
      */
     val status: OrderStatus,
     val buyerId: UserId,
-    val items: List<OrderItem>,
+    val itemIds: List<OrderItemId>,
+    val totalAmount: BigDecimal,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     /**
@@ -40,8 +38,6 @@ class Order private constructor(
      */
     val version: Int,
 ) {
-    val totalAmount = this.items.sumOf { it.totalAmount }
-
     fun isBuyer(buyerId: UserId): Boolean = this.buyerId == buyerId
 
     fun isNotPayComplete(): Boolean = !this.status.isPayComplete()
@@ -110,7 +106,8 @@ class Order private constructor(
             payId = this.payId,
             status = status,
             buyerId = this.buyerId,
-            items = this.items,
+            itemIds = this.itemIds,
+            totalAmount = this.totalAmount,
             createdAt = this.createdAt,
             updatedAt = now,
             version = this.version,
@@ -122,17 +119,19 @@ class Order private constructor(
             id: OrderId,
             payId: PayId,
             buyerId: UserId,
-            items: List<OrderItem>,
+            itemIds: List<OrderItemId>,
+            totalAmount: BigDecimal,
             now: LocalDateTime = LocalDateTime.now(),
         ): Order {
-            if (items.isEmpty()) throw InvalidOrderItemException.invalidOrderItems()
+            require(itemIds.isNotEmpty()) { "주문 상품이 비어있을 수 없습니다." }
 
             return Order(
                 id = id,
                 payId = payId,
                 status = OrderStatus.PENDING,
                 buyerId = buyerId,
-                items = items,
+                itemIds = itemIds,
+                totalAmount = totalAmount,
                 createdAt = now,
                 updatedAt = now,
                 version = 0,
@@ -166,38 +165,6 @@ enum class OrderStatus {
             CANCEL_PROCESSING -> newStatus in setOf(CANCEL_PROCESSING, CANCEL_COMPLETED, CANCEL_FAILED) // 타임아웃 재시도 허용
             CANCEL_FAILED -> newStatus in setOf(CANCEL_PROCESSING, CANCEL_COMPLETED) // 재시도 가능
             CANCEL_COMPLETED -> false // 최종 상태
-        }
-    }
-}
-
-/**
- * 주문 상품 정보
- * 상품의 이름/금액은 변동될 수 있기 때문에 주문 시점의 가격을 저장해요.
- */
-data class OrderItem(
-    val productId: ProductId,
-    val quantity: Int,
-    // 주문 시점의 상품 이름 (스냅샷)
-    val productName: String,
-    // 주문 시점의 상품 단가 (스냅샷)
-    val amount: BigDecimal,
-) {
-    val totalAmount: BigDecimal
-        get() = amount.multiply(BigDecimal.valueOf(quantity.toLong()))
-
-    companion object {
-        fun create(
-            product: Product,
-            quantity: Int,
-        ): OrderItem {
-            if (quantity <= 0) throw InvalidOrderItemException.invalidQuantity()
-
-            return OrderItem(
-                productId = product.id,
-                quantity = quantity,
-                productName = product.name,
-                amount = product.amount,
-            )
         }
     }
 }

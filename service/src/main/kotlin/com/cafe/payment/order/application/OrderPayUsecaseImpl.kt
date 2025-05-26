@@ -8,8 +8,10 @@ import com.cafe.payment.order.OrderPayException
 import com.cafe.payment.order.domain.Order
 import com.cafe.payment.order.domain.OrderId
 import com.cafe.payment.order.domain.OrderItem
+import com.cafe.payment.order.domain.OrderItemId
 import com.cafe.payment.order.domain.OrderPayConfirmation
 import com.cafe.payment.order.domain.OrderPayHistory
+import com.cafe.payment.order.repository.OrderItemRepository
 import com.cafe.payment.order.repository.OrderPayConfirmationRepository
 import com.cafe.payment.order.repository.OrderPayHistoryRepository
 import com.cafe.payment.order.repository.OrderRepository
@@ -23,6 +25,7 @@ import java.time.LocalDateTime
 @Service
 class OrderPayUsecaseImpl(
     private val orderRepository: OrderRepository,
+    private val orderItemRepository: OrderItemRepository,
     private val productRepository: ProductRepository,
     private val orderPayConfirmationRepository: OrderPayConfirmationRepository,
     private val orderPayHistoryRepository: OrderPayHistoryRepository,
@@ -40,22 +43,27 @@ class OrderPayUsecaseImpl(
 
         val payId = payService.obtainPayId(orderId)
 
-        // 1. 주문 생성 및 저장
+        // 1. 주문 상품 목록 및 주문 생성 및 저장
+        val items =
+            orderItems.map {
+                val product = products[it.productId] ?: throw ProductNotFoundException.notFound(it.productId)
+                OrderItem(
+                    id = OrderItemId(LongIdGenerator.generate()),
+                    productId = product.id,
+                    productName = product.name,
+                    quantity = it.quantity,
+                    amount = product.amount,
+                )
+            }
+        orderItemRepository.saveAll(items)
+
         val order =
             Order.create(
                 id = orderId,
                 payId = payId,
                 buyerId = buyerId,
-                items =
-                    orderItems.map {
-                        val product = products[it.productId] ?: throw ProductNotFoundException.notFound(it.productId)
-                        OrderItem(
-                            productId = product.id,
-                            productName = product.name,
-                            quantity = it.quantity,
-                            amount = product.amount,
-                        )
-                    },
+                itemIds = items.map { it.id },
+                totalAmount = items.sumOf { it.totalAmount },
                 now = now,
             )
 

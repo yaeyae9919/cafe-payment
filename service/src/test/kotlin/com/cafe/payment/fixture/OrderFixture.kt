@@ -4,6 +4,7 @@ import com.cafe.payment.billing.domain.PayId
 import com.cafe.payment.order.domain.Order
 import com.cafe.payment.order.domain.OrderId
 import com.cafe.payment.order.domain.OrderItem
+import com.cafe.payment.order.domain.OrderItemId
 import com.cafe.payment.product.domain.Product
 import com.cafe.payment.user.domain.UserId
 import java.time.LocalDateTime
@@ -14,9 +15,14 @@ object OrderFixture {
 
     fun generateOrderId() = OrderId(orderId.incrementAndGet())
 
+    private var orderItemId: AtomicLong = AtomicLong(1)
+
+    fun generateOrderItemId() = OrderItemId(orderItemId.incrementAndGet())
+
     fun createOrder(
         id: OrderId = generateOrderId(),
         payId: PayId = PayFixture.generatePayId(),
+        itemIds: List<OrderItemId> = listOf(generateOrderItemId()),
         buyerId: UserId = UserFixture.generateUserId(),
         items: List<OrderItem> = listOf(createOrderItem()),
         now: LocalDateTime = LocalDateTime.now(),
@@ -24,15 +30,17 @@ object OrderFixture {
         id = id,
         payId = payId,
         buyerId = buyerId,
-        items = items,
+        itemIds = itemIds,
         now = now,
     )
 
     fun createOrderItem(
+        id: OrderItemId = generateOrderItemId(),
         product: Product = ProductFixture.createProduct(),
         quantity: Int = 1,
     ): OrderItem {
         return OrderItem(
+            id = id,
             productId = product.id,
             quantity = quantity,
             productName = product.name,

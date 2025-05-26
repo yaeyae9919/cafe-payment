@@ -6,14 +6,14 @@ import com.cafe.payment.product.domain.ProductId
 object ProductFixture {
     private var productId: Long = 1L
 
-    fun generateProductId() = productId++
+    fun generateProductId() = ProductId(productId++)
 
     fun createProduct(
-        id: Long = generateProductId(),
+        id: ProductId = generateProductId(),
         name: String = "아메리카노",
         amount: Long = 4500L,
     ) = Product(
-        id = ProductId(id),
+        id = id,
         name = name,
         amount = amount.toBigDecimal(),
     )
