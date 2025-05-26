@@ -21,10 +21,14 @@ class AuthenticationFilter(
 ) : Filter {
     companion object {
         private const val USER_ID_HEADER = "x-user-id"
-        private val PUBLIC_PATHS =
-            setOf(
-                "/api/public/",
-                "/h2-console",
+        private val PUBLIC_PATH_PATTERNS =
+            listOf(
+                Regex("^/api/public/.*"),
+                Regex("^/h2-console.*"),
+                Regex("^/swagger-ui.*"),
+                Regex("^/v3/api-docs.*"),
+                Regex("^/api-docs.*"),
+                Regex("^/favicon.ico$"),
             )
         private val REVOKE_WITHDRAWAL_PATH =
             setOf(
@@ -83,7 +87,7 @@ class AuthenticationFilter(
     }
 
     private fun isPublicPath(path: String): Boolean {
-        return PUBLIC_PATHS.any { publicPath -> path.startsWith(publicPath) }
+        return PUBLIC_PATH_PATTERNS.any { pattern -> pattern.matches(path) }
     }
 
     private fun isWithdrawalRevokePath(path: String): Boolean {

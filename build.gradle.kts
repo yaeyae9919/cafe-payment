@@ -70,6 +70,9 @@ project(":api") {
         implementation(project(":service"))
         implementation(project(":library"))
         implementation("org.springframework.boot:spring-boot-starter-web")
+
+        // Swagger/OpenAPI
+        implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
     }
     tasks.jar {
         enabled = true
