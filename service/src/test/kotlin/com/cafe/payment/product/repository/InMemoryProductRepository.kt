@@ -33,4 +33,4 @@ class InMemoryProductRepository : ProductRepository {
             .sortedBy { ids.indexOf(it.id) }
             .toList()
     }
-} 
+}

@@ -3,10 +3,13 @@ package com.cafe.payment.user.repository.jpa
 import com.cafe.payment.user.domain.Gender
 import com.cafe.payment.user.domain.User
 import com.cafe.payment.user.domain.UserId
+import com.cafe.payment.user.repository.jpa.converter.EncryptedLocalDateConverter
+import com.cafe.payment.user.repository.jpa.converter.EncryptedString
+import com.cafe.payment.user.repository.jpa.converter.EncryptedStringConverter
+import com.cafe.payment.user.repository.jpa.converter.GenderConverter
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.LocalDate
@@ -19,12 +22,14 @@ class UserJpaEntity(
     val id: Long,
     @Column(nullable = false, length = 100)
     val name: String,
-    @Column(name = "phone_number", nullable = false, length = 30, unique = true)
-    val phoneNumber: String,
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = EncryptedStringConverter::class)
+    @Column(name = "phone_number", nullable = false, length = 100, unique = true)
+    val phoneNumber: EncryptedString,
+    @Convert(converter = GenderConverter::class)
     @Column(nullable = false)
     val gender: Gender,
-    @Column(name = "birth_date", nullable = false)
+    @Convert(converter = EncryptedLocalDateConverter::class)
+    @Column(name = "birth_date", nullable = false, length = 50)
     val birthDate: LocalDate,
     @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime,
@@ -35,7 +40,7 @@ class UserJpaEntity(
         return User(
             id = UserId(this.id),
             name = this.name,
-            phoneNumber = this.phoneNumber,
+            phoneNumber = this.phoneNumber.value,
             gender = this.gender,
             birthDate = this.birthDate,
             createdAt = this.createdAt,
@@ -48,7 +53,7 @@ class UserJpaEntity(
             return UserJpaEntity(
                 id = user.id.value,
                 name = user.name,
-                phoneNumber = user.phoneNumber,
+                phoneNumber = EncryptedString(user.phoneNumber),
                 gender = user.gender,
                 birthDate = user.birthDate,
                 createdAt = user.createdAt,

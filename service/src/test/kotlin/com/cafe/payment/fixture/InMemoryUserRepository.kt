@@ -16,6 +16,10 @@ class InMemoryUserRepository : UserRepository {
         return users[userId]
     }
 
+    override fun findByPhoneNumber(phoneNumber: String): User? {
+        return users.values.find { it.phoneNumber == phoneNumber }
+    }
+
     override fun deleteById(userId: UserId) {
         users.remove(userId)
     }
