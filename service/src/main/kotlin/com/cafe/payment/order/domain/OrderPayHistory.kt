@@ -9,5 +9,17 @@ import com.cafe.payment.billing.external.PayResult
  */
 data class OrderPayHistory(
     val orderId: OrderId,
+    val orderStatus: OrderStatus,
     val payResult: PayResult?,
-)
+) {
+    companion object {
+        fun create(
+            order: Order,
+            payResult: PayResult?,
+        ) = OrderPayHistory(
+            orderId = order.id,
+            orderStatus = order.status,
+            payResult = payResult,
+        )
+    }
+}

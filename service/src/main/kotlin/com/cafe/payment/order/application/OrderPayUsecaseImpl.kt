@@ -128,10 +128,7 @@ class OrderPayUsecaseImpl(
 
         // 5. 내역 남기기
         orderPayHistoryRepository.record(
-            OrderPayHistory(
-                orderId = processedOrder.id,
-                payResult = payResult,
-            ),
+            OrderPayHistory.create(processedOrder, payResult),
         )
         return OrderPayUsecase.OrderPayResult(
             orderId = processedOrder.id,
