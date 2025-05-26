@@ -8,7 +8,10 @@ import com.cafe.payment.order.domain.OrderId
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-// (외부) 결제 서버 호출 인터페이스
+/**
+ * (외부) 결제 서버 호출 인터페이스
+ * 중복 결제와 같은 케이스는 반드시 막아준다고 가정합니다.
+ */
 interface PayClient {
     fun obtainPayId(orderId: OrderId): PayId
 

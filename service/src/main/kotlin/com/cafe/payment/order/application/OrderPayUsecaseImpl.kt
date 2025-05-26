@@ -116,8 +116,7 @@ class OrderPayUsecaseImpl(
 
                             is PayFailure.AlreadyPaidError -> {
                                 logger.error(exception) { "이미 결제되었어요." }
-
-                                // 이미 정상 결제 처리된 상태이기 때문에 별도의 상태 변경 없어야하나? 타이밍이슈로 Order의 상태가 덮어씌워질 수 있음
+                                // 이미 정상 처리된 건이므로 별도의 상태를 변경하지 않아요.
                                 order
                             }
 
@@ -131,6 +130,7 @@ class OrderPayUsecaseImpl(
             )
 
         // 4. 상태에 따라 변경된 주문 정보 저장
+        // TODO 낙관락 도입으로 인한 에러 케이스 핸들링
         orderRepository.save(processedOrder)
 
         // 5. 내역 남기기

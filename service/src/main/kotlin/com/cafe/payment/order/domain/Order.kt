@@ -33,6 +33,12 @@ class Order private constructor(
     val items: List<OrderItem>,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
+    /**
+     * 낙관적 lock을 위한 version 필드
+     * - 주문 상태의 정합성을 보장(상태가 덮어씌워진다던지 등)하기 위함이에요.
+     * - 결제는 결제 서버가 멱등성 있게 처리해준다고 가정해요. (중복 결제 절대 일어나지 않음)
+     */
+    val version: Int,
 ) {
     val totalAmount = this.items.sumOf { it.totalAmount }
 
@@ -81,6 +87,7 @@ class Order private constructor(
             items = this.items,
             createdAt = this.createdAt,
             updatedAt = now,
+            version = this.version,
         )
     }
 
@@ -102,6 +109,7 @@ class Order private constructor(
                 items = items,
                 createdAt = now,
                 updatedAt = now,
+                version = 0,
             )
         }
     }
