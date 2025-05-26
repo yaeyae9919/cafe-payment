@@ -8,6 +8,8 @@ interface UserRepository {
     fun save(user: User): User
 
     fun findById(userId: UserId): User?
+
+    fun deleteById(userId: UserId)
 }
 
 @Repository
@@ -21,5 +23,9 @@ class InMemoryUserRepository : UserRepository {
 
     override fun findById(userId: UserId): User? {
         return users[userId]
+    }
+
+    override fun deleteById(userId: UserId) {
+        users.remove(userId)
     }
 }

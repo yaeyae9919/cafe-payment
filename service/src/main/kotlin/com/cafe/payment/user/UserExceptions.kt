@@ -73,10 +73,17 @@ class UserNotFoundException(
     message: String,
 ) : UserException(HttpStatusCode.NOT_FOUND, errorCode, message, null) {
     companion object {
-        fun notFound(): UserNotFoundException {
+        fun notFoundActiveUser(): UserNotFoundException {
             return UserNotFoundException(
                 errorCode = "USER_NOT_FOUND_001",
                 message = "존재하지 않는 사용자에요.",
+            )
+        }
+
+        fun notFoundWithdrawnUser(): UserNotFoundException {
+            return UserNotFoundException(
+                errorCode = "USER_NOT_FOUND_002",
+                message = "탈퇴 사용자 정보를 찾을 수 없어요.",
             )
         }
     }

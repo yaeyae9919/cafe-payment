@@ -1,7 +1,7 @@
 package com.cafe.payment.auth
 
+import com.cafe.payment.user.application.UserService
 import com.cafe.payment.user.domain.UserId
-import com.cafe.payment.user.repository.UserRepository
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletRequest
@@ -17,7 +17,7 @@ import java.time.LocalDateTime
 @Component
 @Order(1)
 class AuthenticationFilter(
-    private val userRepository: UserRepository,
+    private val userService: UserService,
 ) : Filter {
     companion object {
         private const val USER_ID_HEADER = "x-user-id"
@@ -58,25 +58,21 @@ class AuthenticationFilter(
             } catch (e: NumberFormatException) {
                 throw InvalidUserHeaderException.invalidUserHeader()
             }
-
         // 사용자 존재 여부 및 활성 상태 확인
-        val user = userRepository.findById(userId)
-        if (user == null) {
-            throw UserAuthenticationException.userNotFound()
-        }
+        val isActiveUser = userService.isActive(userId)
+        val isRevokableWithdrawn = userService.isRevokableWithdrawn(userId, LocalDateTime.now())
 
-        // 탈퇴 케이스 핸들링
-        val now = LocalDateTime.now()
-        val userIsWithDrawn = user.isWithdrawn()
-
-        // 탈퇴 철회 불가능이라면 삭제된 사용자로서 취급
-        if (userIsWithDrawn && user.cannotRevokeWithdrawal(now)) {
-            throw UserAuthenticationException.userNotFound()
-        }
-
-        // 탈퇴한 사용자는 탈퇴 철회 API만 호출 가능
-        if (userIsWithDrawn && !isWithdrawalRevokePath(requestPath)) {
-            throw UserAuthenticationException.withdrawnUser()
+        when {
+            // 활성유저의 경우 패스
+            isActiveUser -> Unit
+            // 탈퇴 & 탈퇴 철회 가능 사용자라면 탈퇴 철회 API 호출 가능
+            isRevokableWithdrawn && isWithdrawalRevokePath(requestPath) -> Unit
+            // 탈퇴 & 탈퇴 철회 가능 사용자라면 탈퇴 철회 API"만" 호출 가능
+            isRevokableWithdrawn && isWithdrawalRevokePath(requestPath) -> {
+                throw UserAuthenticationException.withdrawnUser()
+            }
+            // 탈퇴 & 탈퇴 철회 불가 사용자라면 삭제된 사용자로서 취급
+            else -> throw UserAuthenticationException.userNotFound()
         }
 
         // UserContext에 사용자 ID 설정

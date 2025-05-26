@@ -3,6 +3,7 @@ package com.cafe.payment.fixture
 import com.cafe.payment.user.domain.Gender
 import com.cafe.payment.user.domain.User
 import com.cafe.payment.user.domain.UserId
+import com.cafe.payment.user.domain.WithdrawnUser
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicLong
@@ -46,7 +47,7 @@ object UserFixture {
         birthDate: LocalDate = DEFAULT_BIRTH_DATE,
         createdAt: LocalDateTime = DEFAULT_NOW,
         withdrawnAt: LocalDateTime = DEFAULT_NOW.plusDays(1),
-    ): User {
+    ): WithdrawnUser {
         val user =
             createUser(
                 id = id,
@@ -56,6 +57,6 @@ object UserFixture {
                 birthDate = birthDate,
                 now = createdAt,
             )
-        return user.withdraw(withdrawnAt)
+        return WithdrawnUser.create(user, withdrawnAt)
     }
 }
