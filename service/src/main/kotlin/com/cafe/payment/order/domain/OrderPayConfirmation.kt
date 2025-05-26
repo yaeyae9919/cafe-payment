@@ -6,7 +6,7 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 // 특정 주문의 승인/취소 확정 정보 모델
-class OrderPayConfirmation private constructor(
+class OrderPayConfirmation internal constructor(
     val orderId: OrderId,
     val totalAmount: BigDecimal,
     // 결제 정보 ID

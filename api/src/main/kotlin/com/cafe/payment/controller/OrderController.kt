@@ -72,8 +72,8 @@ class OrderController(
             orderId = orderResult.orderId.toString(),
             message =
                 when (orderResult.status) {
-                    OrderPayUsecase.OrderPayStatus.SUCCESS -> "환불 완료되었어요."
-                    OrderPayUsecase.OrderPayStatus.FAILED -> "환불 실패했어요."
+                    OrderPayUsecase.OrderPayStatus.SUCCESS -> "주문 취소 완료되었어요."
+                    OrderPayUsecase.OrderPayStatus.FAILED -> "주문 취소 실패했어요."
                 },
         )
     }

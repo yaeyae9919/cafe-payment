@@ -2,6 +2,8 @@ package com.cafe.payment.order.repository
 
 import com.cafe.payment.order.domain.OrderId
 import com.cafe.payment.order.domain.OrderPayConfirmation
+import com.cafe.payment.order.repository.jpa.OrderPayConfirmationJpaEntity
+import com.cafe.payment.order.repository.jpa.OrderPayConfirmationJpaRepository
 import org.springframework.stereotype.Repository
 
 interface OrderPayConfirmationRepository {
@@ -11,15 +13,16 @@ interface OrderPayConfirmationRepository {
 }
 
 @Repository
-class NoOpOrderPayConfirmationRepository : OrderPayConfirmationRepository {
-    private val confirmations = mutableMapOf<OrderId, OrderPayConfirmation>()
-
+class OrderPayConfirmationRepositoryImpl(
+    private val orderPayConfirmationJpaRepository: OrderPayConfirmationJpaRepository,
+) : OrderPayConfirmationRepository {
     override fun save(orderPayConfirmation: OrderPayConfirmation): OrderPayConfirmation {
-        confirmations[orderPayConfirmation.orderId] = orderPayConfirmation
-        return orderPayConfirmation
+        val entity = OrderPayConfirmationJpaEntity.fromDomain(orderPayConfirmation)
+        val savedEntity = orderPayConfirmationJpaRepository.save(entity)
+        return savedEntity.toDomain()
     }
 
     override fun findByOrderId(orderId: OrderId): OrderPayConfirmation? {
-        return confirmations[orderId]
+        return orderPayConfirmationJpaRepository.findByOrderId(orderId.value)?.toDomain()
     }
 }

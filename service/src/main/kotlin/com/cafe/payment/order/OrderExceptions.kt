@@ -55,7 +55,7 @@ class InvalidOrderItemException(
             )
         }
 
-        fun invalidOrderItems(): InvalidOrderItemException {
+        fun orderItemIsZero(): InvalidOrderItemException {
             return InvalidOrderItemException(
                 errorCode = "ORDER_ITEM_002",
                 message = "주문 상품이 비어있습니다.",

@@ -7,7 +7,6 @@ import com.cafe.payment.order.InvalidOrderItemException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import java.math.BigDecimal
 import java.time.LocalDateTime
 
 class OrderSpec : DescribeSpec({
@@ -17,7 +16,7 @@ class OrderSpec : DescribeSpec({
             val validOrderId = OrderFixture.generateOrderId()
             val validPayId = PayFixture.generatePayId()
             val validBuyerId = UserFixture.generateUserId()
-            val validOrderItemIds = listOf(OrderFixture.generateOrderItemId())
+            val validOrderItems = listOf(OrderFixture.createOrderItem())
             val now = LocalDateTime.now()
 
             val order =
@@ -25,14 +24,13 @@ class OrderSpec : DescribeSpec({
                     id = validOrderId,
                     payId = validPayId,
                     buyerId = validBuyerId,
-                    itemIds = validOrderItemIds,
-                    totalAmount = BigDecimal("4500"),
+                    orderItems = validOrderItems,
                     now = now,
                 )
 
             order.id shouldBe validOrderId
             order.buyerId shouldBe validBuyerId
-            order.itemIds shouldBe listOf(validOrderItemIds)
+            order.itemIds shouldBe validOrderItems.map { it.id }
             order.createdAt shouldBe now
         }
 
@@ -48,8 +46,7 @@ class OrderSpec : DescribeSpec({
                         id = validOrderId,
                         payId = validPayId,
                         buyerId = validBuyerId,
-                        itemIds = emptyList(),
-                        totalAmount = BigDecimal.ZERO,
+                        orderItems = listOf(),
                         now = now,
                     )
                 }

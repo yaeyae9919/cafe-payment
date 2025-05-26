@@ -1,6 +1,7 @@
 package com.cafe.payment.order.domain
 
 import com.cafe.payment.billing.domain.PayId
+import com.cafe.payment.order.InvalidOrderItemException
 import com.cafe.payment.order.OrderStatusTransitionException
 import com.cafe.payment.user.domain.UserId
 import java.math.BigDecimal
@@ -16,7 +17,7 @@ value class OrderId(val value: Long) {
 /**
  * 주문 내역
  */
-class Order private constructor(
+class Order internal constructor(
     val id: OrderId,
     val payId: PayId,
     /**
@@ -119,19 +120,18 @@ class Order private constructor(
             id: OrderId,
             payId: PayId,
             buyerId: UserId,
-            itemIds: List<OrderItemId>,
-            totalAmount: BigDecimal,
+            orderItems: List<OrderItem>,
             now: LocalDateTime = LocalDateTime.now(),
         ): Order {
-            require(itemIds.isNotEmpty()) { "주문 상품이 비어있을 수 없습니다." }
+            if (orderItems.isEmpty()) throw InvalidOrderItemException.orderItemIsZero()
 
             return Order(
                 id = id,
                 payId = payId,
                 status = OrderStatus.PENDING,
                 buyerId = buyerId,
-                itemIds = itemIds,
-                totalAmount = totalAmount,
+                itemIds = orderItems.map { OrderItemId(it.id.value) },
+                totalAmount = orderItems.sumOf { it.totalAmount },
                 createdAt = now,
                 updatedAt = now,
                 version = 0,

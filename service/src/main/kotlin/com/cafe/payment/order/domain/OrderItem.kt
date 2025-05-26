@@ -18,6 +18,7 @@ value class OrderItemId(val value: Long) {
  */
 data class OrderItem(
     val id: OrderItemId,
+    val orderId: OrderId,
     val productId: ProductId,
     val quantity: Int,
     // 주문 시점의 상품 이름 (스냅샷)
@@ -25,12 +26,20 @@ data class OrderItem(
     // 주문 시점의 상품 단가 (스냅샷)
     val amount: BigDecimal,
 ) {
+    override fun equals(other: Any?) =
+        when {
+            this === other -> true
+            other is OrderItem -> this.id == other.id
+            else -> false
+        }
+
     val totalAmount: BigDecimal
         get() = amount.multiply(BigDecimal.valueOf(quantity.toLong()))
 
     companion object {
         fun create(
             id: OrderItemId,
+            orderId: OrderId,
             product: Product,
             quantity: Int,
         ): OrderItem {
@@ -38,6 +47,7 @@ data class OrderItem(
 
             return OrderItem(
                 id = id,
+                orderId = orderId,
                 productId = product.id,
                 quantity = quantity,
                 productName = product.name,
@@ -45,4 +55,4 @@ data class OrderItem(
             )
         }
     }
-} 
+}

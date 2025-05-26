@@ -22,7 +22,6 @@ object OrderFixture {
     fun createOrder(
         id: OrderId = generateOrderId(),
         payId: PayId = PayFixture.generatePayId(),
-        itemIds: List<OrderItemId> = listOf(generateOrderItemId()),
         buyerId: UserId = UserFixture.generateUserId(),
         items: List<OrderItem> = listOf(createOrderItem()),
         now: LocalDateTime = LocalDateTime.now(),
@@ -30,17 +29,19 @@ object OrderFixture {
         id = id,
         payId = payId,
         buyerId = buyerId,
-        itemIds = itemIds,
+        orderItems = items,
         now = now,
     )
 
     fun createOrderItem(
         id: OrderItemId = generateOrderItemId(),
+        orderId: OrderId = generateOrderId(),
         product: Product = ProductFixture.createProduct(),
         quantity: Int = 1,
     ): OrderItem {
         return OrderItem(
             id = id,
+            orderId = orderId,
             productId = product.id,
             quantity = quantity,
             productName = product.name,

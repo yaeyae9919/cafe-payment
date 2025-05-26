@@ -20,9 +20,11 @@ import com.cafe.payment.product.repository.ProductRepository
 import com.cafe.payment.user.domain.UserId
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @Service
+@Transactional
 class OrderPayUsecaseImpl(
     private val orderRepository: OrderRepository,
     private val orderItemRepository: OrderItemRepository,
@@ -49,6 +51,7 @@ class OrderPayUsecaseImpl(
                 val product = products[it.productId] ?: throw ProductNotFoundException.notFound(it.productId)
                 OrderItem(
                     id = OrderItemId(LongIdGenerator.generate()),
+                    orderId = orderId,
                     productId = product.id,
                     productName = product.name,
                     quantity = it.quantity,
@@ -62,8 +65,7 @@ class OrderPayUsecaseImpl(
                 id = orderId,
                 payId = payId,
                 buyerId = buyerId,
-                itemIds = items.map { it.id },
-                totalAmount = items.sumOf { it.totalAmount },
+                orderItems = items,
                 now = now,
             )
 

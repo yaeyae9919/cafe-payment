@@ -13,6 +13,7 @@ class OrderItemSpec : DescribeSpec({
     describe("주문 상품 정보 생성") {
         context("주문 상품 정보를 생성할 수 있다.") {
             val validOrderItemId = OrderFixture.generateOrderItemId()
+            val validOrderId = OrderFixture.generateOrderId()
             val validProductId = ProductFixture.generateProductId()
             val validProductName = "아메리카노"
             val validProductAmount = BigDecimal("4500")
@@ -21,6 +22,7 @@ class OrderItemSpec : DescribeSpec({
             val orderItem =
                 OrderItem(
                     id = validOrderItemId,
+                    orderId = validOrderId,
                     productId = validProductId,
                     quantity = validQuantity,
                     productName = validProductName,
@@ -38,6 +40,7 @@ class OrderItemSpec : DescribeSpec({
                 shouldThrow<InvalidOrderItemException> {
                     OrderItem.create(
                         id = OrderFixture.generateOrderItemId(),
+                        orderId = OrderFixture.generateOrderId(),
                         product = ProductFixture.createProduct(),
                         quantity = 0,
                     )
@@ -46,6 +49,7 @@ class OrderItemSpec : DescribeSpec({
                 shouldThrow<InvalidOrderItemException> {
                     OrderItem.create(
                         id = OrderFixture.generateOrderItemId(),
+                        orderId = OrderFixture.generateOrderId(),
                         product = ProductFixture.createProduct(),
                         quantity = -1,
                     )
@@ -59,6 +63,7 @@ class OrderItemSpec : DescribeSpec({
             val orderItem =
                 OrderItem.create(
                     id = OrderFixture.generateOrderItemId(),
+                    orderId = OrderFixture.generateOrderId(),
                     product = product,
                     quantity = quantity,
                 )
