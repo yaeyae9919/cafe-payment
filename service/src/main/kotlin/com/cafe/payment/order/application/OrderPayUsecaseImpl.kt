@@ -19,6 +19,7 @@ import com.cafe.payment.product.ProductNotFoundException
 import com.cafe.payment.product.repository.ProductRepository
 import com.cafe.payment.user.domain.UserId
 import mu.KotlinLogging
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -141,9 +142,18 @@ class OrderPayUsecaseImpl(
         /**
          * 4. 상태에 따라 변경된 주문 정보 저장
          *
-         * TODO 낙관락 도입으로 인한 에러 케이스 핸들링
+         * 케이스 1: 정상적인 낙관락 충돌 (데이터 정합성 유지됨)
+         *  t1 : pending (v1)
+         *  t2 : pending (v2)
          *
-         * 낙관락 충돌로 인한 order 정합성 깨짐 이슈
+         *  t1 : 결제 성공
+         *  t2 : 결제 실패(중복처리)
+         *
+         *  t1 : complete 저장 (v1 -> v2)
+         *  t2 : pending 저장 => 락 충돌 발생
+         *
+         *
+         * 케이스 2: 문제가 되는 낙관락 충돌 (데이터 정합성 깨짐)
          *  t1 : pending (v1)
          *  t2 : pending (v2)
          *
@@ -153,9 +163,22 @@ class OrderPayUsecaseImpl(
          *   ~ 모종의 이유로 t1 지연됨 ~
          *
          *  t2 : pending 저장 (v1 -> v2)
-         *  t1 : complete 저장 실패 (낙관락 충돌)
+         *  t1 : complete 저장 실패 => 락 충돌 발생 및 order 의 상태 정합성이 깨지게됨.
          */
-        orderRepository.save(processedOrder)
+        try {
+            orderRepository.save(processedOrder)
+        } catch (e: OptimisticLockingFailureException) {
+            logger.error(e) { "낙관락 충돌이 발생했어요. 확인이 필요해요. orderId: ${processedOrder.id}" }
+
+            /**
+             * TODO
+             *  Order.status와 실제 결제 결과 동기화
+             *  내역을 남기기 위해 에러를 던지지 않아요.
+             *
+             *  order - confirmation - history - 결제 서버 데이터를 조회해
+             *  실제 결제 결과를 맞추도록해요.
+             */
+        }
 
         // 5. 내역 남기기
         orderPayHistoryRepository.record(
@@ -239,8 +262,15 @@ class OrderPayUsecaseImpl(
                 },
             )
 
-        // 5. 상태에 따라 변경된 주문 정보 저장
-        orderRepository.save(processedOrder)
+        /**
+         * 5. 상태에 따라 변경된 주문 정보 저장
+         * orderPay 메소드 낙관락 관련 주석을 참고해주세요.
+         */
+        try {
+            orderRepository.save(processedOrder)
+        } catch (e: OptimisticLockingFailureException) {
+            logger.error(e) { "환불 처리 중 낙관락 충돌이 발생했어요. 확인이 필요해요. orderId: ${processedOrder.id}" }
+        }
 
         // 6. 내역 남기기
         orderPayHistoryRepository.record(
