@@ -20,6 +20,13 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
     defer-datasource-initialization: true
 
+# 에러 처리 설정
+server:
+  error:
+    whitelabel:
+      enabled: false
+    include-message: always
+
 # Swagger/OpenAPI 설정
 springdoc:
   api-docs:
